@@ -449,3 +449,40 @@ export function setupOptionsDOM() {
 
   return doc;
 }
+
+export function setupBlockedDOM(queryParams = {}) {
+  const doc = (globalThis.document instanceof MockDocument) ? globalThis.document : new MockDocument();
+  doc.elements.clear();
+  doc.listeners.clear();
+
+  doc.registerElement('blocked-page');
+  doc.registerElement('reason-pill');
+  doc.registerElement('blocked-domain');
+  
+  const blockedSub = doc.registerElement('blocked-sub', 'p');
+  blockedSub.className = 'blocked-sub';
+
+  doc.registerElement('quote-text', 'blockquote');
+  doc.registerElement('quote-author', 'p');
+  doc.registerElement('btn-new-quote', 'button');
+  doc.registerElement('btn-go-back', 'button');
+  doc.registerElement('btn-manage-blocklist', 'button');
+
+  const searchParams = new URLSearchParams(queryParams);
+  const searchStr = searchParams.toString() ? `?${searchParams.toString()}` : '';
+
+  globalThis.document = doc;
+  globalThis.window = globalThis;
+  globalThis.location = new URL(`chrome-extension://mock-extension-id/blocked/blocked.html${searchStr}`);
+  globalThis.window.location = globalThis.location;
+
+  globalThis.window.history = {
+    length: 2,
+    _backCalled: false,
+    back: () => {
+      globalThis.window.history._backCalled = true;
+    }
+  };
+
+  return doc;
+}

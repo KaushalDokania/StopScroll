@@ -3,13 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Blocked - StopScroll</title>
+  <title>StopScroll — Blocked</title>
   <link rel="stylesheet" href="blocked.css">
 </head>
 <body>
-  <div id="app">
-    <h1>Site Blocked</h1>
+
+  <div id="blocked-page">
+    <!-- Decorative glows -->
+    <div class="glow glow-top-left"></div>
+    <div class="glow glow-bottom-right"></div>
+
+    <!-- Mascot -->
+    <div class="mascot-wrap">
+      <div class="mascot-icon">
+        <svg class="lock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <div class="focus-badge">🌱 Focus Mode</div>
+    </div>
+
+    <!-- Reason -->
+    <div class="reason-section">
+      <div id="reason-pill" class="reason-pill pill-rose">Site is Blocked</div>
+      <h1 class="blocked-heading">Take a deep breath and stay on track!</h1>
+      <p class="blocked-sub">
+        You're trying to visit
+        <span id="blocked-domain" class="domain-highlight">—</span>,
+        which is restricted to protect your focus.
+      </p>
+    </div>
+
+    <!-- Quote Card -->
+    <div class="quote-card">
+      <div class="quote-header">
+        <span class="quote-label">⚡ Daily Motivation</span>
+        <button id="btn-new-quote" class="btn-link">↻ New quote</button>
+      </div>
+      <blockquote id="quote-text" class="quote-text">""</blockquote>
+      <p id="quote-author" class="quote-author">—</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+      <button id="btn-go-back" class="btn btn-primary">Go Back to Work</button>
+      <button id="btn-manage-blocklist" class="btn btn-secondary">Manage Blocklist</button>
+    </div>
+
   </div>
-  <script type="module" src="blocked.js"></script>
+
+  <script src="blocked.js" type="module"></script>
 </body>
 </html>
