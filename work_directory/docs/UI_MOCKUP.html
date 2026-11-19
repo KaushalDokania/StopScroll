@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlockGuard v2 - Chrome Extension Mockup</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Smooth scroll & custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.4); }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(1.5deg); }
+    }
+    .animate-float { animation: float 4s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0 font-sans">
+  <div class="max-w-4xl mx-auto py-3 px-2 space-y-4">
+
+    <!-- Top Navigation Switcher -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--card-border)]">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-400 flex items-center justify-center text-white shadow-sm font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold tracking-tight text-[var(--foreground)]">BlockGuard</h2>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold">BlockSite Style</span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)]">Priority: Hard Blocklist &gt; Timer Groups &gt; Allowed</p>
+        </div>
+      </div>
+
+      <!-- Main View Tabs -->
+      <div class="flex items-center bg-[var(--card)] p-1 rounded-xl border border-[var(--card-border)] text-xs font-medium">
+        <button id="viewtab-popup" onclick="switchMainView('popup')" class="px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] shadow-xs transition">
+          1. Popup View
+        </button>
+        <button id="viewtab-options" onclick="switchMainView('options')" class="px-3 py-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">
+          2. Options &amp; Timer Hub
+        </button>
+        <button id="viewtab-blocked" onclick="switchMainView('blocked')" class="px-3 py-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">
+          3. Blocked Page (Graphics &amp; Quotes)
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: CHROME EXTENSION POPUP (REFINED)   -->
+    <!-- ========================================== -->
+    <div id="view-popup" class="flex justify-center py-2 transition-all">
+      <div class="w-[360px] bg-[var(--card)] border border-[var(--card-border)] rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        <!-- Header -->
+        <div class="px-4 py-3 bg-[var(--card)] border-b border-[var(--card-border)] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <span class="font-bold text-sm tracking-tight text-[var(--foreground)]">BlockGuard</span>
+          </div>
+
+          <button onclick="switchMainView('options')" title="Open Settings" class="p-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--background)] transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-4 space-y-3.5">
+          <!-- Single Refined Blocking Toggle Card (No master power) -->
+          <div id="popup-status-card" class="p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 flex items-center justify-between transition-all">
+            <div class="flex items-center gap-2.5">
+              <span id="popup-pulse" class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <div>
+                <p id="popup-title" class="text-xs font-bold text-[var(--foreground)]">Blocking Shield Active</p>
+                <p id="popup-desc" class="text-[11px] text-[var(--muted-foreground)]">Rules &amp; Timers Enforced</p>
+              </div>
+            </div>
+            <!-- Primary Toggle Switch -->
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="popup-shield-toggle" class="sr-only peer" checked onchange="toggleBlockingShield(this.checked)">
+              <div class="w-10 h-5 bg-zinc-300 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+            </label>
+          </div>
+
+          <!-- Active Tab Smart Detection with Favicon -->
+          <div class="p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-semibold text-[var(--muted-foreground)] tracking-wider">Current Website</span>
+              <span class="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Active Tab
+              </span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 truncate">
+                <img id="popup-active-favicon" src="https://www.google.com/s2/favicons?domain=youtube.com&sz=32" alt="icon" class="w-5 h-5 rounded shrink-0">
+                <span id="popup-active-domain" class="text-xs font-mono font-medium text-[var(--foreground)] truncate">youtube.com</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button id="popup-quick-block-btn" onclick="quickBlockCurrentSite()" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500 hover:bg-rose-600 text-white transition flex items-center gap-1">
+                  <span>+ Block</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Timer Summary Widget -->
+          <div class="p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 font-medium text-[var(--foreground)]">
+                <svg class="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Timer Group: Social Media</span>
+              </div>
+              <span class="text-[11px] font-bold text-orange-500">18m left / 30m</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-orange-500 to-rose-500 rounded-full" style="width: 60%;"></div>
+            </div>
+            <div class="text-[10px] text-[var(--muted-foreground)] flex items-center justify-between">
+              <span>Includes: youtube, reddit, instagram</span>
+              <span class="font-medium text-[var(--foreground)]">Resets at midnight</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-3 bg-[var(--background)] border-t border-[var(--card-border)] flex items-center justify-between">
+          <button onclick="switchMainView('blocked')" class="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>Preview Block Screen</span>
+          </button>
+          <button onclick="switchMainView('options')" class="text-xs font-semibold text-rose-500 hover:text-rose-600 flex items-center gap-1">
+            <span>Manage Settings</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- VIEW 2: FULL OPTIONS PAGE (SEARCH MODAL + TIMER GROUPS + RULES)-->
+    <!-- ============================================================== -->
+    <div id="view-options" class="hidden transition-all">
+      <div class="bg-[var(--card)] border border-[var(--card-border)] rounded-2xl shadow-sm overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+        <!-- Sidebar Navigation -->
+        <div class="w-full md:w-56 p-4 border-b md:border-b-0 md:border-r border-[var(--card-border)] bg-[var(--background)] flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center gap-2.5 px-2">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-xs">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="font-bold text-sm text-[var(--foreground)]">BlockGuard</div>
+                <div class="text-[10px] text-[var(--muted-foreground)]">Control Center</div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <nav class="space-y-1 text-xs font-medium">
+              <button onclick="switchOptionsSubTab('hardblock')" id="optnav-hardblock" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-left transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                </svg>
+                <span>Hard Blocklist</span>
+                <span id="badge-hardblock-count" class="ml-auto text-[10px] px-1.5 py-0.2 rounded-full bg-white/20">3</span>
+              </button>
+
+              <button onclick="switchOptionsSubTab('timers')" id="optnav-timers" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] text-left transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>Timer Groups</span>
+                <span id="badge-timers-count" class="ml-auto text-[10px] px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold">2</span>
+              </button>
+
+              <button onclick="switchOptionsSubTab('priority')" id="optnav-priority" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] text-left transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                <span>Priority Rules</span>
+              </button>
+            </nav>
+          </div>
+
+          <div class="pt-4 border-t border-[var(--card-border)]">
+            <button onclick="switchMainView('popup')" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[var(--card-border)] text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--card)] transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              </svg>
+              <span>Back to Popup</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 p-5 space-y-5 overflow-y-auto">
+
+          <!-- TAB A: HARD BLOCKLIST (WITH LIVE ICON SEARCH & FREQUENT SITES) -->
+          <div id="subtab-hardblock" class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-bold text-[var(--foreground)]">Permanent Blocklist</h3>
+                <p class="text-xs text-[var(--muted-foreground)]">These sites are 100% restricted immediately without timer allowances.</p>
+              </div>
+              <button onclick="toggleAddModal(true)" class="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>+ Add Website</span>
+              </button>
+            </div>
+
+            <!-- Quick Add Bar with Suggestions Trigger -->
+            <div class="relative">
+              <div class="relative flex items-center">
+                <div class="absolute left-3 text-[var(--muted-foreground)]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </div>
+                <input type="text" id="quick-filter-input" onfocus="openSuggestionsDropdown()" oninput="handleSearchType(this.value)" placeholder="Search or type website (e.g. reddit.com)..."
+                  class="w-full pl-9 pr-24 py-2.5 text-xs rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-[var(--foreground)] focus:outline-none focus:border-rose-500 transition">
+                <div class="absolute right-2 flex items-center gap-1.5">
+                  <button onclick="quickAddTyped()" class="px-3 py-1 bg-rose-500 hover:bg-rose-600 text-white text-xs rounded-lg font-medium transition">
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              <!-- Popular / Suggested Dropdown (Appears before typing or while searching) -->
+              <div id="search-suggestions-box" class="hidden absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-xl z-30 p-3 space-y-3">
+                <div class="flex items-center justify-between pb-1.5 border-b border-[var(--card-border)]">
+                  <span id="suggestions-header-label" class="text-[11px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
+                    Frequently Visited &amp; Popular Sites
+                  </span>
+                  <button onclick="closeSuggestionsDropdown()" class="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                    Close ✕
+                  </button>
+                </div>
+
+                <!-- Suggestions Grid -->
+                <div id="suggestions-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                  <!-- Injected via JavaScript -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Sites List Table -->
+            <div class="border border-[var(--card-border)] rounded-xl overflow-hidden bg-[var(--background)]">
+              <div class="px-4 py-2.5 bg-[var(--card)] border-b border-[var(--card-border)] flex items-center justify-between text-xs text-[var(--muted-foreground)] font-medium">
+                <span>Blocked Site &amp; Favicon</span>
+                <span>Rule Enforcement</span>
+              </div>
+              <div id="hardblock-list" class="divide-y divide-[var(--card-border)]">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB B: TIMER GROUPS & ALLOWANCES -->
+          <div id="subtab-timers" class="hidden space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-bold text-[var(--foreground)]">Timer Groups (Usage Limits)</h3>
+                <p class="text-xs text-[var(--muted-foreground)]">Browse distraction sites up to a daily limit. Once time is up, the group is locked.</p>
+              </div>
+              <button onclick="addNewTimerGroup()" class="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>+ New Timer Group</span>
+              </button>
+            </div>
+
+            <!-- Group Cards -->
+            <div id="timer-groups-container" class="space-y-3">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- TAB C: PRIORITY RULES EXPLAINER -->
+          <div id="subtab-priority" class="hidden space-y-4">
+            <div>
+              <h3 class="text-base font-bold text-[var(--foreground)]">Rule Resolution Priority</h3>
+              <p class="text-xs text-[var(--muted-foreground)]">How BlockGuard handles overlaps between the Hard Blocklist and Timer Allowances.</p>
+            </div>
+
+            <!-- Priority Flow Chart Card -->
+            <div class="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--background)] space-y-3">
+              <div class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  1
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-[var(--foreground)]">Priority 1: Hard Blocklist (Top Precedence)</h4>
+                  <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    If a site (e.g. <code>youtube.com</code>) is present on the Hard Blocklist, it is <strong>always blocked immediately</strong>. Any timer configured for it is superseded.
+                  </p>
+                </div>
+              </div>
+
+              <div class="border-t border-[var(--card-border)] pt-3 flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  2
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-[var(--foreground)]">Priority 2: Timer Group Allowance</h4>
+                  <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    If the site is NOT on the hard blocklist, the active tab focus tracker checks its Timer Group. If the group has minutes remaining, access is granted and time decrements. If the timer hits 0:00, access is blocked.
+                  </p>
+                </div>
+              </div>
+
+              <div class="border-t border-[var(--card-border)] pt-3 flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  3
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-[var(--foreground)]">Priority 3: General Browsing (Allowed)</h4>
+                  <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+                    If a site belongs to neither list, it loads without restriction.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- VIEW 3: BLOCKED PAGE (GRAPHICS + RANDOM PRODUCTIVITY QUOTES)   -->
+    <!-- ============================================================== -->
+    <div id="view-blocked" class="hidden transition-all">
+      <div class="bg-[var(--card)] border border-[var(--card-border)] rounded-3xl shadow-sm p-6 sm:p-10 text-center max-w-xl mx-auto space-y-6 relative overflow-hidden">
+        
+        <!-- Decorative Background Glow -->
+        <div class="absolute -top-16 -left-16 w-44 h-44 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Graphic / Mascot Illustration (BlockSite Inspired) -->
+        <div class="relative inline-block animate-float">
+          <div class="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-3xl bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-400 p-1 shadow-lg flex items-center justify-center">
+            <div class="w-full h-full bg-[var(--card)] rounded-[22px] flex items-center justify-center text-rose-500">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+          </div>
+          <!-- Little focus plant/rocket badge -->
+          <div class="absolute -bottom-2 -right-2 px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-md flex items-center gap-1">
+            <span>🌱 Focus Mode</span>
+          </div>
+        </div>
+
+        <!-- Blocked Title & Context -->
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span id="blocked-reason-pill">Site is Blocked</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black tracking-tight text-[var(--foreground)]">
+            Take a deep breath and stay on track!
+          </h2>
+          <p class="text-xs text-[var(--muted-foreground)] max-w-sm mx-auto">
+            You're trying to visit <span id="blocked-url-display" class="font-mono font-semibold text-rose-500">facebook.com</span>, which is restricted to protect your focus.
+          </p>
+        </div>
+
+        <!-- Dynamic Random Productivity Quote Card -->
+        <div class="p-4 rounded-2xl bg-[var(--background)] border border-[var(--card-border)] relative text-left space-y-2 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500 flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              Daily Motivation
+            </span>
+            <button onclick="rollNextQuote()" title="Get another quote" class="text-[11px] text-[var(--muted-foreground)] hover:text-rose-500 flex items-center gap-1 transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>New quote</span>
+            </button>
+          </div>
+          <blockquote id="quote-text" class="text-xs sm:text-sm font-medium italic text-[var(--foreground)] leading-relaxed">
+            "It is not that we have so little time but that we lose so much. The life we receive is not short, but we make it so."
+          </blockquote>
+          <p id="quote-author" class="text-[11px] font-semibold text-right text-[var(--muted-foreground)]">
+            — Seneca
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
+          <button onclick="window.history.back?.() || switchMainView('popup')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white text-xs font-bold shadow-md transition">
+            Go Back to Work
+          </button>
+          <button onclick="switchMainView('options')" class="px-4 py-2.5 rounded-xl border border-[var(--card-border)] hover:bg-[var(--background)] text-xs font-medium text-[var(--muted-foreground)] transition">
+            Manage Blocklist
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Interactive JavaScript State & Handlers -->
+  <script>
+    // Quotes Database
+    const quotes = [
+      { text: "It is not that we have so little time but that we lose so much. The life we receive is not short, but we make it so.", author: "Seneca" },
+      { text: "Focus is a muscle. The more you protect it from distractions, the stronger your achievements become.", author: "Cal Newport" },
+      { text: "Action will delineate and define you. Do not wait for distraction to pass; choose what matters right now.", author: "Thomas Jefferson" },
+      { text: "You will never reach your destination if you stop and throw stones at every dog that barks.", author: "Winston Churchill" },
+      { text: "The secret of getting ahead is getting started. The secret of getting started is breaking complex overwhelming tasks into small manageable tasks.", author: "Mark Twain" },
+      { text: "Starve your distractions, feed your focus.", author: "Anonymous" }
+    ];
+    let currentQuoteIndex = 0;
+
+    // Popular / Frequently Visited Catalog with Brand Colors & Icons
+    const popularCatalog = [
+      { domain: 'youtube.com', name: 'YouTube', color: '#FF0000', icon: 'https://www.google.com/s2/favicons?domain=youtube.com&sz=64' },
+      { domain: 'reddit.com', name: 'Reddit', color: '#FF4500', icon: 'https://www.google.com/s2/favicons?domain=reddit.com&sz=64' },
+      { domain: 'facebook.com', name: 'Facebook', color: '#1877F2', icon: 'https://www.google.com/s2/favicons?domain=facebook.com&sz=64' },
+      { domain: 'instagram.com', name: 'Instagram', color: '#E4405F', icon: 'https://www.google.com/s2/favicons?domain=instagram.com&sz=64' },
+      { domain: 'netflix.com', name: 'Netflix', color: '#E50914', icon: 'https://www.google.com/s2/favicons?domain=netflix.com&sz=64' },
+      { domain: 'twitter.com', name: 'X / Twitter', color: '#000000', icon: 'https://www.google.com/s2/favicons?domain=twitter.com&sz=64' },
+      { domain: 'tiktok.com', name: 'TikTok', color: '#000000', icon: 'https://www.google.com/s2/favicons?domain=tiktok.com&sz=64' },
+      { domain: 'twitch.tv', name: 'Twitch', color: '#9146FF', icon: 'https://www.google.com/s2/favicons?domain=twitch.tv&sz=64' },
+      { domain: 'discord.com', name: 'Discord', color: '#5865F2', icon: 'https://www.google.com/s2/favicons?domain=discord.com&sz=64' }
+    ];
+
+    // Main App State
+    const appState = {
+      blockingShield: true,
+      currentTab: 'youtube.com',
+      hardBlocklist: [
+        { domain: 'facebook.com', enabled: true, icon: 'https://www.google.com/s2/favicons?domain=facebook.com&sz=32' },
+        { domain: 'netflix.com', enabled: true, icon: 'https://www.google.com/s2/favicons?domain=netflix.com&sz=32' },
+        { domain: 'tiktok.com', enabled: true, icon: 'https://www.google.com/s2/favicons?domain=tiktok.com&sz=32' }
+      ],
+      timerGroups: [
+        {
+          id: 1,
+          name: 'Social Media',
+          dailyLimitMinutes: 30,
+          usedMinutes: 12,
+          sites: ['youtube.com', 'reddit.com', 'instagram.com']
+        },
+        {
+          id: 2,
+          name: 'Gaming & Streams',
+          dailyLimitMinutes: 45,
+          usedMinutes: 45, // expired!
+          sites: ['twitch.tv', 'discord.com']
+        }
+      ]
+    };
+
+    // Render Hard Blocklist
+    function renderHardBlocklist() {
+      const listEl = document.getElementById('hardblock-list');
+      const badgeCount = document.getElementById('badge-hardblock-count');
+      badgeCount.textContent = appState.hardBlocklist.length;
+
+      if (appState.hardBlocklist.length === 0) {
+        listEl.innerHTML = `<div class="p-6 text-center text-xs text-[var(--muted-foreground)]">No hard-blocked sites. Add one above!</div>`;
+        return;
+      }
+
+      listEl.innerHTML = appState.hardBlocklist.map((site, index) => {
+        return `
+          <div class="px-4 py-3 flex items-center justify-between hover:bg-[var(--card)] transition">
+            <div class="flex items-center gap-3">
+              <img src="${site.icon}" alt="${site.domain}" class="w-6 h-6 rounded-lg bg-zinc-100 p-0.5 object-contain" onerror="this.src='https://www.google.com/s2/favicons?domain=${site.domain}&sz=32'">
+              <div>
+                <span class="text-xs font-semibold text-[var(--foreground)]">${site.domain}</span>
+                <span class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500 font-medium">Permanent</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${site.enabled ? 'checked' : ''} onchange="toggleSite(${index}, this.checked)" class="sr-only peer">
+                <div class="w-8 h-4 bg-zinc-300 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-rose-500"></div>
+              </label>
+              <button onclick="deleteHardBlock(${index})" class="p-1 rounded text-[var(--muted-foreground)] hover:text-rose-500 transition" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Timer Groups
+    function renderTimerGroups() {
+      const container = document.getElementById('timer-groups-container');
+      const badgeCount = document.getElementById('badge-timers-count');
+      badgeCount.textContent = appState.timerGroups.length;
+
+      container.innerHTML = appState.timerGroups.map((group, gIdx) => {
+        const remaining = Math.max(0, group.dailyLimitMinutes - group.usedMinutes);
+        const isExpired = remaining === 0;
+        const pct = Math.min(100, Math.round((group.usedMinutes / group.dailyLimitMinutes) * 100));
+
+        return `
+          <div class="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--background)] space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg ${isExpired ? 'bg-rose-500/10 text-rose-500' : 'bg-orange-500/10 text-orange-500'} flex items-center justify-center text-xs font-bold">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-[var(--foreground)]">${group.name}</h4>
+                  <p class="text-[10px] text-[var(--muted-foreground)]">Daily allowance: ${group.dailyLimitMinutes} minutes</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold ${isExpired ? 'text-rose-500' : 'text-orange-500'}">${isExpired ? 'Limit Reached (Blocked)' : remaining + 'm remaining'}</span>
+                <span class="block text-[10px] text-[var(--muted-foreground)]">${group.usedMinutes}m / ${group.dailyLimitMinutes}m used</span>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+              <div class="h-full rounded-full ${isExpired ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-500 to-orange-500'}" style="width: ${pct}%"></div>
+            </div>
+
+            <!-- Websites in group -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-1">
+              <span class="text-[10px] font-semibold text-[var(--muted-foreground)] mr-1">Includes:</span>
+              ${group.sites.map((site, sIdx) => `
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--card)] border border-[var(--card-border)] text-[10px] text-[var(--foreground)] font-mono">
+                  <img src="https://www.google.com/s2/favicons?domain=${site}&sz=16" class="w-3 h-3 rounded" alt="">
+                  ${site}
+                  <button onclick="removeSiteFromGroup(${gIdx}, ${sIdx})" class="text-[var(--muted-foreground)] hover:text-rose-500 ml-0.5">✕</button>
+                </span>
+              `).join('')}
+              <button onclick="promptAddSiteToGroup(${gIdx})" class="text-[10px] px-2 py-0.5 rounded-md border border-dashed border-[var(--card-border)] text-orange-500 hover:bg-orange-500/10 font-medium">
+                + Add Site
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Search & Suggestions Logic
+    function openSuggestionsDropdown() {
+      const box = document.getElementById('search-suggestions-box');
+      box.classList.remove('hidden');
+      renderSuggestionsGrid(popularCatalog);
+    }
+
+    function closeSuggestionsDropdown() {
+      const box = document.getElementById('search-suggestions-box');
+      box.classList.add('hidden');
+    }
+
+    function handleSearchType(query) {
+      const q = query.trim().toLowerCase();
+      const headerLabel = document.getElementById('suggestions-header-label');
+      const box = document.getElementById('search-suggestions-box');
+      box.classList.remove('hidden');
+
+      if (!q) {
+        headerLabel.textContent = "Frequently Visited & Popular Sites";
+        renderSuggestionsGrid(popularCatalog);
+        return;
+      }
+
+      headerLabel.textContent = `Matching Results for "${q}"`;
+      const filtered = popularCatalog.filter(item => 
+        item.domain.toLowerCase().includes(q) || item.name.toLowerCase().includes(q)
+      );
+
+      // If user types a new domain not in catalog, append it as a custom card
+      if (!filtered.some(f => f.domain === q) && q.includes('.')) {
+        filtered.push({
+          domain: q,
+          name: q,
+          color: '#F43F5E',
+          icon: `https://www.google.com/s2/favicons?domain=${q}&sz=32`
+        });
+      }
+
+      renderSuggestionsGrid(filtered);
+    }
+
+    function renderSuggestionsGrid(items) {
+      const grid = document.getElementById('suggestions-grid');
+      if (items.length === 0) {
+        grid.innerHTML = `<div class="col-span-3 py-3 text-center text-xs text-[var(--muted-foreground)]">No matching sites found. Press Enter to add.</div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(item => {
+        const isAlreadyBlocked = appState.hardBlocklist.some(s => s.domain === item.domain);
+        return `
+          <div class="p-2 rounded-lg border border-[var(--card-border)] bg-[var(--background)] hover:bg-[var(--card)] flex items-center justify-between gap-2 transition">
+            <div class="flex items-center gap-2 truncate">
+              <img src="${item.icon}" alt="${item.name}" class="w-5 h-5 rounded shrink-0">
+              <div class="truncate">
+                <div class="text-[11px] font-semibold text-[var(--foreground)] truncate">${item.name}</div>
+                <div class="text-[9px] font-mono text-[var(--muted-foreground)] truncate">${item.domain}</div>
+              </div>
+            </div>
+            <button onclick="addDomainToHardBlock('${item.domain}', '${item.icon}')" 
+              class="px-2 py-0.5 rounded text-[10px] font-semibold transition shrink-0 ${isAlreadyBlocked ? 'bg-zinc-200 dark:bg-zinc-800 text-[var(--muted-foreground)] cursor-not-allowed' : 'bg-rose-500 hover:bg-rose-600 text-white'}">
+              ${isAlreadyBlocked ? 'Added' : '+ Add'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addDomainToHardBlock(domain, icon) {
+      if (!appState.hardBlocklist.some(s => s.domain === domain)) {
+        appState.hardBlocklist.unshift({
+          domain: domain,
+          enabled: true,
+          icon: icon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+        });
+        renderHardBlocklist();
+        renderSuggestionsGrid(popularCatalog);
+      }
+    }
+
+    function quickAddTyped() {
+      const input = document.getElementById('quick-filter-input');
+      let val = input.value.trim().toLowerCase();
+      val = val.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+      if (val) {
+        addDomainToHardBlock(val);
+        input.value = '';
+        closeSuggestionsDropdown();
+      }
+    }
+
+    function deleteHardBlock(idx) {
+      appState.hardBlocklist.splice(idx, 1);
+      renderHardBlocklist();
+      renderSuggestionsGrid(popularCatalog);
+    }
+
+    function toggleSite(idx, checked) {
+      appState.hardBlocklist[idx].enabled = checked;
+    }
+
+    // Timer Group Helpers
+    function removeSiteFromGroup(gIdx, sIdx) {
+      appState.timerGroups[gIdx].sites.splice(sIdx, 1);
+      renderTimerGroups();
+    }
+
+    function promptAddSiteToGroup(gIdx) {
+      const site = prompt("Enter domain to add to this timer group (e.g. twitter.com):", "twitter.com");
+      if (site) {
+        const clean = site.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+        if (clean && !appState.timerGroups[gIdx].sites.includes(clean)) {
+          appState.timerGroups[gIdx].sites.push(clean);
+          renderTimerGroups();
+        }
+      }
+    }
+
+    function addNewTimerGroup() {
+      const name = prompt("Enter Timer Group Name:", "Entertainment");
+      if (!name) return;
+      const mins = parseInt(prompt("Enter daily allowance in minutes:", "30"), 10) || 30;
+      appState.timerGroups.push({
+        id: Date.now(),
+        name: name,
+        dailyLimitMinutes: mins,
+        usedMinutes: 0,
+        sites: ['netflix.com']
+      });
+      renderTimerGroups();
+    }
+
+    // Toggle Blocking Shield
+    function toggleBlockingShield(val) {
+      appState.blockingShield = val;
+      const card = document.getElementById('popup-status-card');
+      const title = document.getElementById('popup-title');
+      const desc = document.getElementById('popup-desc');
+      const pulse = document.getElementById('popup-pulse');
+
+      if (val) {
+        card.className = "p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 flex items-center justify-between transition-all";
+        title.textContent = "Blocking Shield Active";
+        desc.textContent = "Rules & Timers Enforced";
+        pulse.innerHTML = `
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        `;
+      } else {
+        card.className = "p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between transition-all";
+        title.textContent = "Blocking Paused";
+        desc.textContent = "All websites temporarily allowed";
+        pulse.innerHTML = `<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>`;
+      }
+    }
+
+    function quickBlockCurrentSite() {
+      addDomainToHardBlock(appState.currentTab);
+      const btn = document.getElementById('popup-quick-block-btn');
+      btn.innerHTML = '<span>✓ Blocked</span>';
+      btn.classList.replace('bg-rose-500', 'bg-emerald-500');
+      setTimeout(() => {
+        btn.innerHTML = '<span>+ Block</span>';
+        btn.classList.replace('bg-emerald-500', 'bg-rose-500');
+      }, 1500);
+    }
+
+    // Quotes Generator
+    function rollNextQuote() {
+      currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
+      document.getElementById('quote-text').textContent = `"${quotes[currentQuoteIndex].text}"`;
+      document.getElementById('quote-author').textContent = `— ${quotes[currentQuoteIndex].author}`;
+    }
+
+    // Navigation Switchers
+    function switchMainView(view) {
+      document.getElementById('view-popup').classList.toggle('hidden', view !== 'popup');
+      document.getElementById('view-options').classList.toggle('hidden', view !== 'options');
+      document.getElementById('view-blocked').classList.toggle('hidden', view !== 'blocked');
+
+      ['popup', 'options', 'blocked'].forEach(t => {
+        const btn = document.getElementById('viewtab-' + t);
+        if (t === view) {
+          btn.className = "px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] shadow-xs transition";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition";
+        }
+      });
+    }
+
+    function switchOptionsSubTab(tab) {
+      document.getElementById('subtab-hardblock').classList.toggle('hidden', tab !== 'hardblock');
+      document.getElementById('subtab-timers').classList.toggle('hidden', tab !== 'timers');
+      document.getElementById('subtab-priority').classList.toggle('hidden', tab !== 'priority');
+
+      ['hardblock', 'timers', 'priority'].forEach(t => {
+        const btn = document.getElementById('optnav-' + t);
+        if (t === tab) {
+          btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] text-left transition";
+        } else {
+          btn.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] text-left transition";
+        }
+      });
+    }
+
+    // Init
+    renderHardBlocklist();
+    renderTimerGroups();
+    rollNextQuote();
+  </script>
+</body>
+</html>

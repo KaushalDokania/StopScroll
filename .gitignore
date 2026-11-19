@@ -3,6 +3,9 @@
 .AppleDouble
 .LSOverride
 
+# Node / Dependencies
+node_modules/
+
 # Editor & IDE
 .vscode/
 .idea/
@@ -13,3 +16,5 @@
 *.crx
 *.zip
 *.log
+dist/
+git_src/
