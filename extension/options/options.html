@@ -3,13 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StopScroll Settings</title>
+  <title>StopScroll — Settings</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
-  <div id="app">
-    <h1>StopScroll Settings</h1>
+
+  <div id="app-shell">
+
+    <!-- ── Sidebar ──────────────────────────────────────────── -->
+    <aside id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">StopScroll</div>
+          <div class="brand-sub">Control Center</div>
+        </div>
+      </div>
+
+      <nav id="sidebar-nav">
+        <button class="nav-item active" data-tab="hardblock" id="nav-hardblock">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+          </svg>
+          <span>Hard Blocklist</span>
+          <span id="badge-hardblock" class="badge">0</span>
+        </button>
+        <button class="nav-item" data-tab="timers" id="nav-timers">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Timer Groups</span>
+          <span id="badge-timers" class="badge orange">0</span>
+        </button>
+        <button class="nav-item" data-tab="priority" id="nav-priority">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span>Priority Rules</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="btn-back-to-popup" class="btn-link">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          <span>Back to Popup</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────────────── -->
+    <main id="main-content">
+
+      <!-- TAB A: Hard Blocklist -->
+      <section id="tab-hardblock" class="tab-pane active">
+        <div class="tab-header">
+          <div>
+            <h2>Permanent Blocklist</h2>
+            <p class="tab-desc">These sites are 100% restricted immediately without timer allowances.</p>
+          </div>
+          <button id="btn-add-site" class="btn btn-rose">+ Add Website</button>
+        </div>
+
+        <!-- Search + Suggestions -->
+        <div id="search-container">
+          <div class="search-input-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" id="search-input"
+              placeholder="Search or type website (e.g. reddit.com)..."
+              autocomplete="off" spellcheck="false">
+            <button id="btn-search-add" class="btn btn-rose-sm">Add</button>
+          </div>
+          <div id="suggestions-dropdown" class="dropdown hidden">
+            <div class="dropdown-header">
+              <span id="dropdown-label">Frequently Visited &amp; Popular Sites</span>
+              <button id="btn-close-suggestions" class="btn-close">Close ✕</button>
+            </div>
+            <div id="suggestions-grid" class="suggestions-grid"></div>
+          </div>
+        </div>
+
+        <!-- Blocklist Table -->
+        <div id="hardblock-table-wrap">
+          <div class="table-header">
+            <span>Blocked Site &amp; Favicon</span>
+            <span>Rule Enforcement</span>
+          </div>
+          <div id="hardblock-list"></div>
+        </div>
+      </section>
+
+      <!-- TAB B: Timer Groups -->
+      <section id="tab-timers" class="tab-pane hidden">
+        <div class="tab-header">
+          <div>
+            <h2>Timer Groups (Usage Limits)</h2>
+            <p class="tab-desc">Browse distraction sites up to a daily limit. Once time is up, the group is locked.</p>
+          </div>
+          <button id="btn-new-group" class="btn btn-orange">+ New Timer Group</button>
+        </div>
+        <div id="timer-groups-list"></div>
+      </section>
+
+      <!-- TAB C: Priority Rules -->
+      <section id="tab-priority" class="tab-pane hidden">
+        <div class="tab-header">
+          <div>
+            <h2>Rule Resolution Priority</h2>
+            <p class="tab-desc">How StopScroll handles overlaps between the Hard Blocklist and Timer Allowances.</p>
+          </div>
+        </div>
+        <div class="priority-explainer">
+          <div class="priority-step">
+            <div class="priority-badge rose">1</div>
+            <div class="priority-body">
+              <h4>Priority 1: Hard Blocklist (Top Precedence)</h4>
+              <p>If a site is on the Hard Blocklist, it is <strong>always blocked immediately</strong>. Any timer configured for it is superseded.</p>
+            </div>
+          </div>
+          <div class="priority-step">
+            <div class="priority-badge orange">2</div>
+            <div class="priority-body">
+              <h4>Priority 2: Timer Group Allowance</h4>
+              <p>If the site is NOT on the hard blocklist, its Timer Group is checked. If the group has minutes remaining, access is granted and time decrements. If the timer hits 0:00, access is blocked.</p>
+            </div>
+          </div>
+          <div class="priority-step">
+            <div class="priority-badge green">3</div>
+            <div class="priority-body">
+              <h4>Priority 3: General Browsing (Allowed)</h4>
+              <p>If a site belongs to neither list, it loads without restriction.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
-  <script type="module" src="options.js"></script>
+
+  <script src="options.js" type="module"></script>
 </body>
 </html>

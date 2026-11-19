@@ -11,14 +11,22 @@ class MockClassList {
 
   add(...classNames) {
     for (const c of classNames) {
-      if (c) this.classes.add(c);
+      if (c) {
+        c.trim().split(/\s+/).forEach(part => {
+          if (part) this.classes.add(part);
+        });
+      }
     }
     this._sync();
   }
 
   remove(...classNames) {
     for (const c of classNames) {
-      this.classes.delete(c);
+      if (c) {
+        c.trim().split(/\s+/).forEach(part => {
+          if (part) this.classes.delete(part);
+        });
+      }
     }
     this._sync();
   }
@@ -61,6 +69,47 @@ class MockClassList {
   }
 }
 
+function matchesSelector(el, selector) {
+  if (!selector) return false;
+  selector = selector.trim();
+
+  // Handle :not([disabled])
+  if (selector.includes(':not([disabled])')) {
+    const baseSelector = selector.replace(':not([disabled])', '').trim();
+    if (el.disabled) return false;
+    if (!baseSelector) return true;
+    return matchesSelector(el, baseSelector);
+  }
+
+  // Handle #id
+  if (selector.startsWith('#')) {
+    return el.id === selector.slice(1);
+  }
+
+  // Handle [data-...]
+  const dataMatch = selector.match(/^\[data-([a-zA-Z0-9_-]+)(?:=["']?([^"']*)["']?)?\]$/);
+  if (dataMatch) {
+    const key = dataMatch[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    if (dataMatch[2] !== undefined) {
+      return el.dataset[key] === dataMatch[2];
+    }
+    return el.dataset[key] !== undefined;
+  }
+
+  // Handle .className or compound class .c1.c2
+  if (selector.startsWith('.')) {
+    const parts = selector.split('.').filter(Boolean);
+    return parts.every(part => el.classList.contains(part));
+  }
+
+  // Handle tag name
+  if (/^[a-zA-Z0-9_-]+$/.test(selector)) {
+    return el.tagName.toLowerCase() === selector.toLowerCase();
+  }
+
+  return false;
+}
+
 export class MockElement {
   constructor(tagName = 'div', id = '') {
     this.tagName = tagName.toUpperCase();
@@ -68,7 +117,7 @@ export class MockElement {
     this._className = '';
     this.classList = new MockClassList(this);
     this.textContent = '';
-    this.innerHTML = '';
+    this._innerHTML = '';
     this.value = '';
     this.checked = false;
     this.disabled = false;
@@ -79,6 +128,7 @@ export class MockElement {
     this.dataset = {};
     this.listeners = new Map();
     this.children = [];
+    this.parentNode = null;
   }
 
   get className() {
@@ -88,6 +138,110 @@ export class MockElement {
   set className(val) {
     this._className = val || '';
     this.classList._fromClassName(this._className);
+  }
+
+  get innerHTML() {
+    return this._innerHTML;
+  }
+
+  set innerHTML(html) {
+    this._innerHTML = String(html);
+    this.children = [];
+    this._parseHTMLToChildren(this._innerHTML);
+    // Also derive textContent roughly
+    this.textContent = this._innerHTML.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  _parseHTMLToChildren(html) {
+    // Lightweight regex parser to extract child elements with classes, IDs, datasets, disabled
+    const tagRegex = /<([a-zA-Z0-9-]+)([^>]*)>(?:([\s\S]*?)<\/\1>)?/g;
+    let match;
+    while ((match = tagRegex.exec(html)) !== null) {
+      const tagName = match[1];
+      const attrsStr = match[2] || '';
+      const innerContent = match[3] || '';
+
+      const child = new MockElement(tagName);
+      child.parentNode = this;
+
+      // Extract id
+      const idMatch = attrsStr.match(/\bid=["']([^"']+)["']/i);
+      if (idMatch) child.id = idMatch[1];
+
+      // Extract class
+      const classMatch = attrsStr.match(/\bclass=["']([^"']+)["']/i);
+      if (classMatch) child.className = classMatch[1];
+
+      // Extract disabled
+      if (/\bdisabled\b/i.test(attrsStr)) child.disabled = true;
+
+      // Extract checked
+      if (/\bchecked\b/i.test(attrsStr)) child.checked = true;
+
+      // Extract dataset e.g. data-domain="..." data-tab="..." data-gidx="..." data-sidx="..."
+      const dataRegex = /\bdata-([a-zA-Z0-9_-]+)=["']([^"']*)["']/g;
+      let dMatch;
+      while ((dMatch = dataRegex.exec(attrsStr)) !== null) {
+        const key = dMatch[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        child.dataset[key] = dMatch[2];
+      }
+
+      // Extract src
+      const srcMatch = attrsStr.match(/\bsrc=["']([^"']+)["']/i);
+      if (srcMatch) child.src = srcMatch[1];
+
+      // Extract value
+      const valMatch = attrsStr.match(/\bvalue=["']([^"']+)["']/i);
+      if (valMatch) child.value = valMatch[1];
+
+      // Inner text / recursive children
+      child.textContent = innerContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (innerContent.includes('<')) {
+        child._parseHTMLToChildren(innerContent);
+      }
+
+      this.children.push(child);
+    }
+  }
+
+  appendChild(child) {
+    child.parentNode = this;
+    this.children.push(child);
+    return child;
+  }
+
+  removeChild(child) {
+    const idx = this.children.indexOf(child);
+    if (idx >= 0) {
+      this.children.splice(idx, 1);
+      child.parentNode = null;
+    }
+    return child;
+  }
+
+  remove() {
+    if (this.parentNode) {
+      this.parentNode.removeChild(this);
+    }
+  }
+
+  querySelector(selector) {
+    const results = this.querySelectorAll(selector);
+    return results.length > 0 ? results[0] : null;
+  }
+
+  querySelectorAll(selector) {
+    const matches = [];
+    const search = (node) => {
+      for (const child of node.children) {
+        if (matchesSelector(child, selector)) {
+          matches.push(child);
+        }
+        search(child);
+      }
+    };
+    search(this);
+    return matches;
   }
 
   addEventListener(type, listener) {
@@ -122,6 +276,13 @@ export class MockElement {
     }
     await this.dispatchEvent({ type: 'change', target: this });
   }
+
+  async input(val) {
+    if (val !== undefined) {
+      this.value = val;
+    }
+    await this.dispatchEvent({ type: 'input', target: this });
+  }
 }
 
 export class MockDocument {
@@ -138,7 +299,6 @@ export class MockDocument {
 
   getElementById(id) {
     if (!this.elements.has(id)) {
-      // Auto-register mock element if missing to avoid null dereferences
       const el = new MockElement('div', id);
       this.elements.set(id, el);
     }
@@ -149,11 +309,21 @@ export class MockDocument {
     if (selector.startsWith('#')) {
       return this.getElementById(selector.slice(1));
     }
-    return null;
+    const results = this.querySelectorAll(selector);
+    return results.length > 0 ? results[0] : null;
   }
 
   querySelectorAll(selector) {
-    return [];
+    const matches = [];
+    // Search top registered elements and their descendants
+    for (const el of this.elements.values()) {
+      if (matchesSelector(el, selector)) {
+        matches.push(el);
+      }
+      matches.push(...el.querySelectorAll(selector));
+    }
+    // Deduplicate in case of shared references
+    return Array.from(new Set(matches));
   }
 
   createElement(tagName) {
@@ -191,7 +361,6 @@ export class MockDocument {
 export function setupPopupDOM() {
   const doc = new MockDocument();
 
-  // Create standard popup elements
   doc.registerElement('shield-card');
   doc.registerElement('shield-dot');
   doc.registerElement('shield-title');
@@ -215,6 +384,68 @@ export function setupPopupDOM() {
 
   globalThis.document = doc;
   globalThis.window = globalThis;
+
+  return doc;
+}
+
+export function setupOptionsDOM() {
+  const doc = new MockDocument();
+
+  // Sidebar & Navigation
+  doc.registerElement('app-shell');
+  doc.registerElement('sidebar');
+  const nav = doc.registerElement('sidebar-nav', 'nav');
+
+  const navHardblock = new MockElement('button');
+  navHardblock.className = 'nav-item active';
+  navHardblock.dataset.tab = 'hardblock';
+  nav.appendChild(navHardblock);
+
+  const navTimers = new MockElement('button');
+  navTimers.className = 'nav-item';
+  navTimers.dataset.tab = 'timers';
+  nav.appendChild(navTimers);
+
+  const navPriority = new MockElement('button');
+  navPriority.className = 'nav-item';
+  navPriority.dataset.tab = 'priority';
+  nav.appendChild(navPriority);
+
+  doc.registerElement('badge-hardblock');
+  doc.registerElement('badge-timers');
+  doc.registerElement('btn-back-to-popup', 'button');
+
+  // Tab A: Hard Blocklist
+  const tabHardblock = doc.registerElement('tab-hardblock', 'section');
+  tabHardblock.className = 'tab-pane active';
+
+  doc.registerElement('btn-add-site', 'button');
+  doc.registerElement('search-container');
+  doc.registerElement('search-input', 'input');
+  doc.registerElement('btn-search-add', 'button');
+  const dropdown = doc.registerElement('suggestions-dropdown');
+  dropdown.className = 'dropdown hidden';
+  doc.registerElement('dropdown-label');
+  doc.registerElement('btn-close-suggestions', 'button');
+  doc.registerElement('suggestions-grid');
+  doc.registerElement('hardblock-table-wrap');
+  doc.registerElement('hardblock-list');
+
+  // Tab B: Timer Groups
+  const tabTimers = doc.registerElement('tab-timers', 'section');
+  tabTimers.className = 'tab-pane hidden';
+
+  doc.registerElement('btn-new-group', 'button');
+  doc.registerElement('timer-groups-list');
+
+  // Tab C: Priority Rules
+  const tabPriority = doc.registerElement('tab-priority', 'section');
+  tabPriority.className = 'tab-pane hidden';
+
+  globalThis.document = doc;
+  globalThis.window = globalThis;
+  globalThis.window.prompt = (msg, defaultVal) => defaultVal || '';
+  globalThis.window.confirm = (msg) => true;
 
   return doc;
 }
