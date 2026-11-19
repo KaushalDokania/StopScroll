@@ -137,13 +137,19 @@ export function createMockChrome() {
       onStartup: createListenerMock(),
       sendMessage: async (msg) => ({ received: true, msg }),
       getURL: (path) => `chrome-extension://mock-extension-id/${String(path).replace(/^\//, '')}`,
+      openOptionsPage: async () => {
+        chromeMock.runtime._optionsOpened = true;
+        return true;
+      },
+      _optionsOpened: false,
       lastError: null
     },
     tabs: {
       _tabs: tabsMap,
-      _setTab: (tab) => tabsMap.set(tab.id, { id: tab.id, url: 'about:blank', active: true, ...tab }),
+      _createdTabs: [],
+      _setTab: (tab) => tabsMap.set(tab.id, { id: tab.id, url: 'about:blank', active: true, windowId: 1, ...tab }),
       get: async (tabId) => {
-        return tabsMap.get(tabId) || { id: tabId, url: 'about:blank', active: true };
+        return tabsMap.get(tabId) || { id: tabId, url: 'about:blank', active: true, windowId: 1 };
       },
       query: async (queryInfo = {}) => {
         let list = Array.from(tabsMap.values());
@@ -153,6 +159,7 @@ export function createMockChrome() {
         if (queryInfo.windowId !== undefined) {
           list = list.filter(t => t.windowId === queryInfo.windowId);
         }
+        // If query specifies active: true and currentWindow: true, return active tabs
         return list;
       },
       update: async (tabId, updateProps) => {
@@ -164,6 +171,7 @@ export function createMockChrome() {
       create: async (props) => {
         const id = tabsMap.size + 100;
         const newTab = { id, ...props };
+        chromeMock.tabs._createdTabs.push(newTab);
         tabsMap.set(id, newTab);
         return newTab;
       },
