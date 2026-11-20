@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StopScroll — 3x3 Grid & Scenic Nature Block Screen Showcase</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Cormorant+Garamond:ital,wght@0,700;1,700&family=Inter:wght@700;800;900&family=Lora:ital,wght@0,700;1,700&family=Newsreader:ital,opsz,wght@6..72,700;1,6..72,700&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ============================================================== */
+    /* ALWAYS BOLD TYPOGRAPHY SYSTEM: SERIF & PUNCHY SANS BLOCKS      */
+    /* ============================================================== */
+
+    /* Literary Serif Voices (Always Bold: 700 - 900) */
+    .font-serif-playfair {
+      font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+      font-weight: 800;
+    }
+
+    .font-serif-cormorant {
+      font-family: 'Cormorant Garamond', Garamond, 'Hoefler Text', Georgia, serif;
+      font-weight: 700;
+    }
+
+    .font-serif-cinzel {
+      font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .font-serif-lora {
+      font-family: 'Lora', Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+    }
+
+    .font-serif-newsreader {
+      font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+    }
+
+    /* Modern Impactful Sans-Serif Voices (for short, big bold text blocks) */
+    .font-sans-grotesk {
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .font-sans-jakarta {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .font-sans-inter {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    /* Base Quote Enforcement: Always Bold */
+    #quote-main-text {
+      font-weight: 800;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    /* ============================================================== */
+    /* 9-ZONE VIEWPORT-ANCHORED ALIGNMENT SYSTEM                     */
+    /* Guarantees quote NEVER overflows top, bottom, left or right    */
+    /* ============================================================== */
+
+    /* Vertical & Horizontal Anchor on #scenic-stage */
+    .zone-top-left {
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    .zone-top-center {
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .zone-top-right {
+      justify-content: flex-start;
+      align-items: flex-end;
+    }
+
+    .zone-center-left {
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .zone-center-center {
+      justify-content: center;
+      align-items: center;
+    }
+
+    .zone-center-right {
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .zone-bottom-left {
+      justify-content: flex-end;
+      align-items: flex-start;
+    }
+
+    .zone-bottom-center {
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .zone-bottom-right {
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+
+    /* Content Alignment within Card */
+    .align-left {
+      text-align: left;
+      max-width: min(700px, 86vw);
+    }
+
+    .align-left #category-wrapper {
+      justify-content: flex-start;
+    }
+
+    .align-left #quote-author-wrap {
+      justify-content: flex-start;
+      flex-direction: row;
+    }
+
+    .align-center {
+      text-align: center;
+      max-width: min(860px, 92vw);
+    }
+
+    .align-center #category-wrapper {
+      justify-content: center;
+    }
+
+    .align-center #quote-author-wrap {
+      justify-content: center;
+      flex-direction: row;
+    }
+
+    .align-right {
+      text-align: right;
+      max-width: min(700px, 86vw);
+    }
+
+    .align-right #category-wrapper {
+      justify-content: flex-end;
+    }
+
+    .align-right #quote-author-wrap {
+      justify-content: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    /* In-frame bounds protection */
+    #dynamic-quote-container {
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    #dynamic-quote-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Text readability shadow against scenic photography */
+    .text-drop-shadow {
+      text-shadow: 0 4px 28px rgba(0, 0, 0, 0.95), 0 2px 10px rgba(0, 0, 0, 0.95);
+    }
+
+    .text-drop-shadow-subtle {
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-950 text-white min-h-screen font-sans antialiased overflow-x-hidden select-none">
+
+  <!-- ============================================================== -->
+  <!-- FLOATING INTERACTIVE CONTROLLER TOOLBAR                        -->
+  <!-- ============================================================== -->
+  <header
+    class="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-zinc-950/80 border-b border-white/10 px-4 py-2.5 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-2.5">
+        <div
+          class="w-7 h-7 rounded-lg bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-400 p-0.5 shadow-sm flex items-center justify-center">
+          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-bold tracking-tight text-white flex items-center gap-1.5">
+            StopScroll Dynamic Scene Studio
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">Always Bold •
+              Serif &amp; Sans Blocks</span>
+          </div>
+          <div class="text-[10px] text-zinc-400 flex items-center gap-1.5">
+            <span>Font:</span>
+            <span id="current-font-name" class="font-mono text-amber-300 font-semibold">Playfair Display (Bold
+              Serif)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls: Scenic Moods & 3x3 Grid Buttons -->
+      <div class="flex flex-wrap items-center gap-2">
+
+        <!-- Scenery Mood Selector -->
+        <div class="flex items-center bg-zinc-900/90 rounded-xl p-1 border border-zinc-800 text-xs font-medium">
+          <span class="text-[10px] uppercase font-mono px-2 text-zinc-400">Scene:</span>
+          <button onclick="setScene(0)" id="scene-btn-0"
+            class="px-2.5 py-1 rounded-lg bg-amber-400 text-zinc-950 font-bold shadow transition">
+            🌲 Misty Forest
+          </button>
+          <button onclick="setScene(1)" id="scene-btn-1"
+            class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
+            🏔️ Alpine Lake
+          </button>
+          <button onclick="setScene(2)" id="scene-btn-2"
+            class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
+            🌊 Ocean Swell
+          </button>
+          <button onclick="setScene(3)" id="scene-btn-3"
+            class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
+            🏜️ Desert Dunes
+          </button>
+          <button onclick="setScene(4)" id="scene-btn-4"
+            class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
+            🌌 Deep Cosmos
+          </button>
+        </div>
+
+        <!-- 3x3 Grid Mini-Controller -->
+        <div class="flex items-center gap-1 bg-zinc-900/90 rounded-xl p-1 border border-zinc-800"
+          title="Click any cell in 3x3 grid to reposition quote">
+          <span class="text-[10px] uppercase font-mono px-1.5 text-zinc-400">Grid:</span>
+          <div class="grid grid-cols-3 gap-0.5 w-16 h-7 bg-zinc-800/80 p-0.5 rounded">
+            <button onclick="setGridPos('top-left')" id="gbtn-top-left"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Top Left"></button>
+            <button onclick="setGridPos('top-center')" id="gbtn-top-center"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Top Center"></button>
+            <button onclick="setGridPos('top-right')" id="gbtn-top-right"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Top Right"></button>
+            <button onclick="setGridPos('center-left')" id="gbtn-center-left"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Center Left"></button>
+            <button onclick="setGridPos('center-center')" id="gbtn-center-center"
+              class="rounded-[2px] bg-amber-400 text-zinc-950 font-bold text-[6px] font-mono leading-none shadow-sm"
+              title="Center Center"></button>
+            <button onclick="setGridPos('center-right')" id="gbtn-center-right"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Center Right"></button>
+            <button onclick="setGridPos('bottom-left')" id="gbtn-bottom-left"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Bottom Left"></button>
+            <button onclick="setGridPos('bottom-center')" id="gbtn-bottom-center"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Bottom Center"></button>
+            <button onclick="setGridPos('bottom-right')" id="gbtn-bottom-right"
+              class="rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition"
+              title="Bottom Right"></button>
+          </div>
+        </div>
+
+        <!-- Grid Guide Toggle -->
+        <button onclick="toggleGridGuide()" id="grid-guide-btn"
+          class="px-2.5 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs font-mono flex items-center gap-1 transition"
+          title="Toggle 3x3 Grid Sector Lines">
+          <span>📐 Grid Lines</span>
+        </button>
+
+        <!-- Master Randomizer -->
+        <button onclick="rollRandomVisit()"
+          class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-zinc-950 font-black text-xs flex items-center gap-1.5 shadow-md transition active:scale-95">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Shuffle Scene &amp; Quote ↻</span>
+        </button>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- IMMERSIVE FULL-SCREEN CANVAS                                   -->
+  <!-- ============================================================== -->
+  <div id="scenic-canvas"
+    class="relative w-full h-screen overflow-hidden flex flex-col justify-between bg-cover bg-center transition-all duration-1000"
+    style="background-image: url('https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=2560&q=85');">
+
+    <!-- Atmospheric Dark Cinematic Overlays for Perfect Readability -->
+    <div id="scenic-overlay"
+      class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/85 pointer-events-none transition-all duration-700">
+    </div>
+    <div class="absolute inset-0 bg-radial-vignette pointer-events-none"
+      style="background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0,0,0,0.7) 100%);"></div>
+
+    <!-- Top Floating Meta Bar (Shrink-0 protects vertical bounds) -->
+    <div class="relative z-20 pt-16 sm:pt-20 px-6 sm:px-12 md:px-16 flex items-center justify-between shrink-0">
+      <div
+        class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/50 border border-white/15 backdrop-blur-md shadow-lg text-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+        <span id="target-domain-label" class="font-mono text-white font-semibold">reddit.com</span>
+        <span class="text-white/40">•</span>
+        <span id="target-reason-badge" class="text-rose-300 font-medium">Distraction Blocked</span>
+      </div>
+
+      <div
+        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/10 backdrop-blur-md text-[11px] font-mono text-zinc-300">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span id="scene-name-label">Misty Redwood Forest</span>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- 3x3 DYNAMIC STAGE (IN-FRAME VIEWPORT BOUNDED)                   -->
+    <!-- ============================================================== -->
+    <main id="scenic-stage"
+      class="zone-center-center relative z-20 flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 md:px-16 py-3 sm:py-5 flex flex-col min-h-0 pointer-events-none transition-all duration-700 ease-out">
+
+      <!-- Optional visual grid guide for testing boundary alignment -->
+      <div id="grid-guide-overlay"
+        class="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 inset-y-3 sm:inset-y-5 grid grid-cols-3 grid-rows-3 pointer-events-none border border-dashed border-amber-400/25 rounded-2xl hidden transition-all duration-300">
+        <div class="border-r border-b border-dashed border-amber-400/15 flex items-start justify-start p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Left</span></div>
+        <div class="border-r border-b border-dashed border-amber-400/15 flex items-start justify-center p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Center</span></div>
+        <div class="border-b border-dashed border-amber-400/15 flex items-start justify-end p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Right</span></div>
+        <div class="border-r border-b border-dashed border-amber-400/15 flex items-center justify-start p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Left</span></div>
+        <div class="border-r border-b border-dashed border-amber-400/15 flex items-center justify-center p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Center</span></div>
+        <div class="border-b border-dashed border-amber-400/15 flex items-center justify-end p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Right</span></div>
+        <div class="border-r border-dashed border-amber-400/15 flex items-end justify-start p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Left</span></div>
+        <div class="border-r border-dashed border-amber-400/15 flex items-end justify-center p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Center</span></div>
+        <div class="flex items-end justify-end p-2"><span
+            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Right</span></div>
+      </div>
+
+      <!-- Dynamic Quote Card (Strictly Bounded Inside Frame) -->
+      <div id="dynamic-quote-container"
+        class="align-center pointer-events-auto flex flex-col transition-all duration-500 ease-out space-y-3 sm:space-y-4">
+
+        <!-- Category Badge Wrapper (Aligns with position) -->
+        <div id="category-wrapper" class="flex justify-center transition-all duration-500">
+          <div id="quote-category-tag"
+            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/45 border border-white/20 backdrop-blur-md text-[11px] font-mono uppercase tracking-widest text-amber-300 shadow-xl">
+            ✦ Stoic Perspective
+          </div>
+        </div>
+
+        <!-- Big Bold Dynamic Quote Text (Always Bold, In-Frame Clamped) -->
+        <blockquote id="quote-main-text"
+          class="text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] leading-[1.18] tracking-tight text-white text-drop-shadow font-serif-playfair italic font-extrabold break-words transition-all duration-300">
+          "We suffer more often in imagination than in reality."
+        </blockquote>
+
+        <!-- Author with dynamic rule (Aligns with position) -->
+        <div id="quote-author-wrap"
+          class="flex items-center justify-center gap-3 text-sm font-semibold tracking-wide text-zinc-200 text-drop-shadow-subtle transition-all duration-500">
+          <span class="w-6 h-[2px] bg-amber-400 shrink-0"></span>
+          <span id="quote-author-text" class="uppercase font-mono text-xs tracking-widest text-amber-300">—
+            Seneca</span>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Floating Action Bar (Shrink-0 protects bottom bounds) -->
+    <div
+      class="relative z-20 pb-6 sm:pb-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto w-full shrink-0">
+
+      <div
+        class="text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/45 px-3.5 py-1.5 rounded-full border border-white/10">
+        Press <kbd class="px-1.5 py-0.5 rounded bg-white/20 border border-white/20 text-white font-bold">Space</kbd> or
+        click Shuffle for a new position &amp; scene
+      </div>
+
+      <!-- Action Buttons -->
+      <div
+        class="flex items-center gap-2.5 p-1.5 rounded-2xl bg-black/60 border border-white/15 backdrop-blur-2xl shadow-2xl">
+        <button onclick="alert('Action: Takes user back to work or closes tab')"
+          class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold text-xs tracking-wide shadow-lg shadow-rose-500/25 transition active:scale-95">
+          ← Go Back to Work
+        </button>
+        <button onclick="alert('Action: Opens options/options.html')"
+          class="px-4 py-2.5 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition">
+          Settings
+        </button>
+        <button onclick="rollRandomVisit()" title="Shuffle Scene (Spacebar)"
+          class="p-2.5 rounded-xl text-zinc-300 hover:text-amber-300 hover:bg-white/10 transition active:rotate-180 duration-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        class="hidden sm:block text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/45 px-3.5 py-1.5 rounded-full border border-white/10">
+        Position: <span id="current-pos-name" class="text-amber-300 font-bold">CENTER-CENTER</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive JavaScript State -->
+  <script>
+    // 5 High-Quality Curated Relaxing Nature / Landscape Scenes
+    const scenicScenes = [
+      {
+        name: "Misty Redwood Forest",
+        url: "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=2560&q=85",
+        overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
+      },
+      {
+        name: "Alpine Sunset Lake",
+        url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2560&q=85",
+        overlay: "bg-gradient-to-b from-black/65 via-black/40 to-black/90"
+      },
+      {
+        name: "Moody Nordic Ocean",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2560&q=85",
+        overlay: "bg-gradient-to-b from-black/75 via-black/50 to-black/90"
+      },
+      {
+        name: "Golden Desert Dunes",
+        url: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=2560&q=85",
+        overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
+      },
+      {
+        name: "Deep Cosmic Aurora",
+        url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=2560&q=85",
+        overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
+      }
+    ];
+
+    // 25 Curated High-Voltage Quotes (ALWAYS BOLD: Serif & Punchy Sans Blocks)
+    const quotes = [
+      // 1. Short Punchy Big Blocks of Text (Bold Sans & Bold Roman Inscriptional)
+      {
+        text: "STARVE YOUR DISTRACTIONS. FEED YOUR MOMENTUM.",
+        author: "Anonymous",
+        category: "Momentum",
+        fontClass: "font-sans-grotesk font-black uppercase tracking-tight",
+        fontDisplayName: "Space Grotesk (Bold Sans Block)"
+      },
+      {
+        text: "DISCIPLINE EQUALS FREEDOM.",
+        author: "Jocko Willink",
+        category: "Discipline",
+        fontClass: "font-sans-jakarta font-black uppercase tracking-tighter",
+        fontDisplayName: "Plus Jakarta Sans (Ultra-Bold Block)"
+      },
+      {
+        text: "DO NOT TRADE WHAT YOU WANT MOST FOR WHAT YOU WANT NOW.",
+        author: "Abraham Lincoln",
+        category: "Discipline",
+        fontClass: "font-sans-inter font-black uppercase tracking-tight",
+        fontDisplayName: "Inter (Black Heavy Block)"
+      },
+      {
+        text: "One day or day one. You decide.",
+        author: "Paulo Coelho",
+        category: "Action",
+        fontClass: "font-sans-grotesk font-black tracking-tight",
+        fontDisplayName: "Space Grotesk (Bold Sans Block)"
+      },
+      {
+        text: "Lost time is never found again.",
+        author: "Benjamin Franklin",
+        category: "Time Mastery",
+        fontClass: "font-serif-cinzel font-black uppercase tracking-wider",
+        fontDisplayName: "Cinzel Roman (Bold Stone Serif)"
+      },
+      {
+        text: "A busy mind cannot see the obvious.",
+        author: "Naval Ravikant",
+        category: "Mindfulness",
+        fontClass: "font-sans-jakarta font-extrabold tracking-tight",
+        fontDisplayName: "Plus Jakarta Sans (Bold Sans Block)"
+      },
+      {
+        text: "Work in silence, let your success be the noise.",
+        author: "Frank Ocean",
+        category: "Deep Craft",
+        fontClass: "font-serif-playfair font-black italic",
+        fontDisplayName: "Playfair Display (Black Serif)"
+      },
+      {
+        text: "Deciding what not to do is as important as deciding what to do.",
+        author: "Steve Jobs",
+        category: "Deep Work",
+        fontClass: "font-sans-grotesk font-bold",
+        fontDisplayName: "Space Grotesk (Bold Sans Block)"
+      },
+      {
+        text: "Do fewer things. Do them better. Know why you are doing them.",
+        author: "Cal Newport",
+        category: "Deep Work",
+        fontClass: "font-sans-jakarta font-black tracking-tight",
+        fontDisplayName: "Plus Jakarta Sans (Ultra-Bold Block)"
+      },
+
+      // 2. Medium & Philosophical Quotes (Bold Literary Serifs)
+      {
+        text: "We suffer more often in imagination than in reality.",
+        author: "Seneca",
+        category: "Stoic Wisdom",
+        fontClass: "font-serif-playfair font-black italic",
+        fontDisplayName: "Playfair Display (Bold Serif)"
+      },
+      {
+        text: "Focus is a muscle. The more you protect it, the stronger your craft becomes.",
+        author: "Cal Newport",
+        category: "Deep Work",
+        fontClass: "font-serif-playfair font-extrabold",
+        fontDisplayName: "Playfair Display (Bold Serif)"
+      },
+      {
+        text: "Simplicity is about subtracting the obvious and adding the meaningful.",
+        author: "John Maeda",
+        category: "Craft",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "Waste no more time arguing about what a good person should be. Be one.",
+        author: "Marcus Aurelius",
+        category: "Stoic Wisdom",
+        fontClass: "font-serif-cinzel font-black uppercase tracking-wide",
+        fontDisplayName: "Cinzel Roman (Bold Stone Serif)"
+      },
+      {
+        text: "Every action you take is a vote for the type of person you wish to become.",
+        author: "James Clear",
+        category: "Atomic Habits",
+        fontClass: "font-serif-lora font-bold italic",
+        fontDisplayName: "Lora (Bold Serif)"
+      },
+      {
+        text: "Almost everything will work again if you unplug it for a few minutes — including you.",
+        author: "Anne Lamott",
+        category: "Breathing Room",
+        fontClass: "font-serif-playfair font-extrabold italic",
+        fontDisplayName: "Playfair Display (Bold Serif)"
+      },
+      {
+        text: "Peace comes from within. Do not seek it without.",
+        author: "Buddha",
+        category: "Mindfulness",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "Wealth consists not in having great possessions, but in having few wants.",
+        author: "Epictetus",
+        category: "Stoic Wisdom",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "It is not that we have so little time, but that we lose so much.",
+        author: "Seneca",
+        category: "Stoic Wisdom",
+        fontClass: "font-serif-lora font-bold italic",
+        fontDisplayName: "Lora (Bold Serif)"
+      },
+
+      // 3. Longer Deep Inquiries (Bold Literary Serifs)
+      {
+        text: "You have power over your mind, not outside events. Realize this, and you will find strength.",
+        author: "Marcus Aurelius",
+        category: "Stoic Wisdom",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "You do not rise to the level of your goals. You fall to the level of your systems.",
+        author: "James Clear",
+        category: "Atomic Habits",
+        fontClass: "font-serif-newsreader font-bold italic",
+        fontDisplayName: "Newsreader (Bold Serif)"
+      },
+      {
+        text: "Smile, breathe and go slowly. There is no other way to live.",
+        author: "Thích Nhất Hạnh",
+        category: "Mindfulness",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "The quieter you become, the more you are able to hear.",
+        author: "Rumi",
+        category: "Mindfulness",
+        fontClass: "font-serif-cormorant font-bold italic",
+        fontDisplayName: "Cormorant Garamond (Bold Serif)"
+      },
+      {
+        text: "Remembering that you are going to die is the best way to avoid thinking you have something to lose.",
+        author: "Steve Jobs",
+        category: "Perspective",
+        fontClass: "font-serif-playfair font-extrabold italic",
+        fontDisplayName: "Playfair Display (Bold Serif)"
+      },
+      {
+        text: "The average human lifespan is absurdly, terrifyingly, insultingly short: around four thousand weeks.",
+        author: "Oliver Burkeman",
+        category: "Time Mastery",
+        fontClass: "font-serif-newsreader font-bold italic",
+        fontDisplayName: "Newsreader (Bold Serif)"
+      },
+      {
+        text: "How we spend our days is, of course, how we spend our lives.",
+        author: "Annie Dillard",
+        category: "Perspective",
+        fontClass: "font-serif-lora font-bold italic",
+        fontDisplayName: "Lora (Bold Serif)"
+      }
+    ];
+
+    // All 9 Grid Positions Supported
+    const gridPositions = [
+      "top-left",
+      "top-center",
+      "top-right",
+      "center-left",
+      "center-center",
+      "center-right",
+      "bottom-left",
+      "bottom-center",
+      "bottom-right"
+    ];
+
+    let currentSceneIdx = 0;
+    let currentGridPos = "center-center";
+    let showGuide = false;
+
+    function setScene(idx) {
+      currentSceneIdx = idx;
+      const s = scenicScenes[idx];
+      const canvas = document.getElementById('scenic-canvas');
+      const overlay = document.getElementById('scenic-overlay');
+      const label = document.getElementById('scene-name-label');
+
+      canvas.style.backgroundImage = `url('${s.url}')`;
+      overlay.className = `absolute inset-0 ${s.overlay} pointer-events-none transition-all duration-700`;
+      label.textContent = s.name;
+
+      for (let i = 0; i < scenicScenes.length; i++) {
+        const btn = document.getElementById(`scene-btn-${i}`);
+        if (i === idx) {
+          btn.className = "px-2.5 py-1 rounded-lg bg-amber-400 text-zinc-950 font-bold shadow transition";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition";
+        }
+      }
+    }
+
+    function setGridPos(pos) {
+      currentGridPos = pos;
+      const stage = document.getElementById('scenic-stage');
+      const box = document.getElementById('dynamic-quote-container');
+      const posLabel = document.getElementById('current-pos-name');
+
+      // 1. Remove prior zone classes from stage
+      gridPositions.forEach(p => stage.classList.remove(`zone-${p}`));
+      stage.classList.add(`zone-${pos}`);
+
+      // 2. Adjust internal alignment on card based on horizontal position
+      box.classList.remove('align-left', 'align-center', 'align-right');
+      if (pos.endsWith('-left')) {
+        box.classList.add('align-left');
+      } else if (pos.endsWith('-right')) {
+        box.classList.add('align-right');
+      } else {
+        box.classList.add('align-center');
+      }
+
+      posLabel.textContent = pos.toUpperCase();
+
+      // 3. Highlight active cell in mini controller
+      gridPositions.forEach(p => {
+        const el = document.getElementById(`gbtn-${p}`);
+        if (el) {
+          if (p === pos) {
+            el.className = "rounded-[2px] bg-amber-400 text-zinc-950 font-bold text-[6px] font-mono leading-none shadow-sm";
+          } else {
+            el.className = "rounded-[2px] bg-white/10 hover:bg-amber-400/60 text-[6px] font-mono leading-none transition";
+          }
+        }
+      });
+    }
+
+    function toggleGridGuide() {
+      showGuide = !showGuide;
+      const guide = document.getElementById('grid-guide-overlay');
+      const btn = document.getElementById('grid-guide-btn');
+      if (showGuide) {
+        guide.classList.remove('hidden');
+        btn.classList.add('bg-amber-400/20', 'border-amber-400/40', 'text-amber-300');
+        btn.classList.remove('text-zinc-300');
+      } else {
+        guide.classList.add('hidden');
+        btn.classList.remove('bg-amber-400/20', 'border-amber-400/40', 'text-amber-300');
+        btn.classList.add('text-zinc-300');
+      }
+    }
+
+    function applyDynamicTypography(quote) {
+      const textEl = document.getElementById('quote-main-text');
+      const fontLabel = document.getElementById('current-font-name');
+      const len = quote.text.length;
+
+      // Always Bold Dynamic Typography:
+      // Short quotes get a tight, punchy block format; longer quotes stay calibrated in-frame
+      let sizeClass = "";
+      if (len < 50) {
+        // Short punchy quotes: huge bold text block with compact leading
+        sizeClass = "text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.08] font-black";
+      } else if (len < 85) {
+        // Medium length quotes: strong presence and graceful line wraps
+        sizeClass = "text-xl sm:text-3xl md:text-4xl lg:text-[2.4rem] leading-[1.18] font-extrabold";
+      } else {
+        // Longer philosophical quotes: bold and elegant without overflowing frame
+        sizeClass = "text-lg sm:text-2xl md:text-3xl lg:text-[1.85rem] leading-[1.28] font-bold";
+      }
+
+      textEl.className = `${sizeClass} tracking-tight text-white font-extrabold break-words text-drop-shadow ${quote.fontClass}`;
+      textEl.textContent = `"${quote.text}"`;
+      if (fontLabel) {
+        fontLabel.textContent = quote.fontDisplayName || "Bold";
+      }
+    }
+
+    function rollRandomVisit() {
+      // 1. Pick random scene
+      const randScene = Math.floor(Math.random() * scenicScenes.length);
+      setScene(randScene);
+
+      // 2. Pick random 3x3 grid position (all 9 positions)
+      const randPos = gridPositions[Math.floor(Math.random() * gridPositions.length)];
+      setGridPos(randPos);
+
+      // 3. Pick random quote
+      const q = quotes[Math.floor(Math.random() * quotes.length)];
+      const authorEl = document.getElementById('quote-author-text');
+      const catEl = document.getElementById('quote-category-tag');
+
+      applyDynamicTypography(q);
+      authorEl.textContent = `— ${q.author}`;
+      catEl.textContent = `✦ ${q.category}`;
+    }
+
+    // Spacebar listener for instant shuffle
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && (e.target === document.body || e.target === document.documentElement)) {
+        e.preventDefault();
+        rollRandomVisit();
+      }
+    });
+  </script>
+</body>
+
+</html>

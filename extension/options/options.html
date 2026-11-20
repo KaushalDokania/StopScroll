@@ -47,6 +47,13 @@
         </button>
       </nav>
 
+      <div class="sidebar-theme-toggle">
+        <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle Light / Dark Mode">
+          <span class="theme-toggle-icon" id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-label">Dark Mode</span>
+        </button>
+      </div>
+
       <div class="sidebar-footer">
         <button id="btn-back-to-popup" class="btn-link">
           <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -79,7 +86,7 @@
             <input type="text" id="search-input"
               placeholder="Search or type website (e.g. reddit.com)..."
               autocomplete="off" spellcheck="false">
-            <button id="btn-search-add" class="btn btn-rose-sm">Add</button>
+            <button id="btn-search-add" class="btn btn-rose-sm" disabled>Add</button>
           </div>
           <div id="suggestions-dropdown" class="dropdown hidden">
             <div class="dropdown-header">

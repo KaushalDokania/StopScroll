@@ -88,3 +88,12 @@
 - [x] Comprehensive user documentation and installation walkthrough (`README.md`)
 - [x] Final acceptance sign-off
 - [x] Git Commit (`65e6655`)
+
+---
+
+### UX Improvements & Bug Fixes (Options Page)
+- [x] **Live Typing Search & Custom Domain Synthesis**: Typing any website dynamically searches extended catalogs and synthesizes candidate domains with live favicons and formatted friendly titles.
+- [x] **Add Button State**: Greyed out / disabled by default when search input is empty; automatically enabled upon typing.
+- [x] **Modal Click-Outside Collapse**: Suggestions dropdown automatically collapses when clicking outside or pressing Escape.
+- [x] **Dark Mode Toggle**: Persistent toggle button in Options page sidebar with Light/Dark switching and theme tokens.
+- [x] **Unit Test Suite Expanded**: 101 tests passing across 49 test suites.

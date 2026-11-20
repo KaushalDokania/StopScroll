@@ -1,7 +1,7 @@
 // options/options.js
 import { StorageService } from '../shared/storage.js';
 import { normalizeDomain, faviconUrl } from '../shared/utils.js';
-import { POPULAR_CATALOG } from '../shared/catalog.js';
+import { POPULAR_CATALOG, EXTENDED_CATALOG } from '../shared/catalog.js';
 
 // ── Tab Navigation ─────────────────────────────────────────────────────────
 export function switchTab(tab) {
@@ -46,7 +46,7 @@ export async function renderHardBlocklist() {
     <div class="table-row">
       <div class="site-cell">
         <img src="${site.icon || faviconUrl(site.domain)}" 
-             alt="${site.domain}" class="favicon">
+             alt="${site.domain}" class="favicon" onerror="this.src='../icons/icon32.png'">
         <div>
           <span class="domain-name">${site.domain}</span>
           <span class="badge-pill rose">Permanent</span>
@@ -124,7 +124,7 @@ export async function deleteHardBlock(target) {
   return false;
 }
 
-// ── Suggestions Dropdown ───────────────────────────────────────────────────
+// ── Suggestions Dropdown & Live Search ─────────────────────────────────────
 export function showDropdown() {
   const dd = document.getElementById('suggestions-dropdown');
   if (dd) dd.classList.remove('hidden');
@@ -135,24 +135,107 @@ export function hideDropdown() {
   if (dd) dd.classList.add('hidden');
 }
 
+/**
+ * Derives a clean, readable display name from a raw domain or search query.
+ */
+export function formatDomainName(rawInput) {
+  if (!rawInput) return '';
+  const clean = normalizeDomain(rawInput);
+  const base = clean.split('.')[0] || clean;
+  const known = {
+    'github': 'GitHub',
+    'youtube': 'YouTube',
+    'linkedin': 'LinkedIn',
+    'tiktok': 'TikTok',
+    'whatsapp': 'WhatsApp Web',
+    'telegram': 'Telegram Web',
+    'nytimes': 'The New York Times',
+    'wsj': 'Wall Street Journal',
+    'cnn': 'CNN',
+    'bbc': 'BBC News',
+    'espn': 'ESPN',
+    'quora': 'Quora',
+    'medium': 'Medium',
+    'reddit': 'Reddit',
+    'facebook': 'Facebook',
+    'instagram': 'Instagram',
+    'netflix': 'Netflix',
+    'twitch': 'Twitch',
+    'discord': 'Discord',
+    'pinterest': 'Pinterest',
+    'snapchat': 'Snapchat',
+    'theverge': 'The Verge',
+    'techcrunch': 'TechCrunch',
+    'stackoverflow': 'Stack Overflow',
+    'amazon': 'Amazon',
+    'wikipedia': 'Wikipedia',
+    'threads': 'Threads',
+    'steam': 'Steam',
+    'steampowered': 'Steam',
+    'notion': 'Notion',
+    'figma': 'Figma',
+    'linear': 'Linear',
+    'coursera': 'Coursera',
+    'udemy': 'Udemy',
+    'spotify': 'Spotify',
+    'substack': 'Substack',
+    'hacker-news': 'Hacker News'
+  };
+  const lowerBase = base.toLowerCase();
+  if (known[lowerBase]) return known[lowerBase];
+  return base
+    .split(/[-_]/)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 export async function renderSuggestions(query = '') {
-  const q = normalizeDomain(query);
+  const rawQuery = String(query).trim();
+  const q = normalizeDomain(rawQuery);
   const list = (await StorageService.getHardBlocklist()) || [];
   const label = document.getElementById('dropdown-label');
   const grid = document.getElementById('suggestions-grid');
 
-  let items = POPULAR_CATALOG;
+  let items = [];
+
   if (q) {
-    items = POPULAR_CATALOG.filter(c =>
+    const pool = (typeof EXTENDED_CATALOG !== 'undefined') ? EXTENDED_CATALOG : POPULAR_CATALOG;
+    const seen = new Set();
+    const uniquePool = [];
+    for (const item of pool) {
+      if (!seen.has(item.domain)) {
+        seen.add(item.domain);
+        uniquePool.push(item);
+      }
+    }
+
+    const matches = uniquePool.filter(c =>
       c.domain.includes(q) || c.name.toLowerCase().includes(q)
     );
-    if (!items.some(c => c.domain === q) && q.includes('.')) {
-      items = [...items, { domain: q, name: q, color: '#f43f5e' }];
+
+    // Live custom domain synthesis: render with real favicon & formatted name
+    let customDomain = q;
+    if (!customDomain.includes('.')) {
+      customDomain = `${q}.com`;
     }
+
+    const customItem = {
+      domain: customDomain,
+      name: formatDomainName(q),
+      color: '#f43f5e'
+    };
+
+    if (!matches.some(m => m.domain === customDomain)) {
+      items = [customItem, ...matches];
+    } else {
+      items = matches;
+    }
+
     if (label) {
-      label.textContent = `Matching Results for "${q}"`;
+      label.textContent = `Matching Results for "${rawQuery}"`;
     }
   } else {
+    items = POPULAR_CATALOG;
     if (label) {
       label.textContent = 'Frequently Visited & Popular Sites';
     }
@@ -161,7 +244,7 @@ export async function renderSuggestions(query = '') {
   if (!grid) return;
 
   if (items.length === 0) {
-    grid.innerHTML = `<div class="empty-state">No matching sites. Press Add to add custom domain.</div>`;
+    grid.innerHTML = `<div class="empty-state">No matching sites found.</div>`;
     return;
   }
 
@@ -170,7 +253,7 @@ export async function renderSuggestions(query = '') {
     return `
       <div class="suggestion-card">
         <div class="suggestion-info">
-          <img src="${faviconUrl(item.domain)}" alt="${item.name}" class="favicon">
+          <img src="${faviconUrl(item.domain)}" alt="${item.name}" class="favicon" onerror="this.src='../icons/icon32.png'">
           <div>
             <div class="suggestion-name">${item.name}</div>
             <div class="suggestion-domain">${item.domain}</div>
@@ -187,6 +270,16 @@ export async function renderSuggestions(query = '') {
   grid.querySelectorAll('.btn-add-suggestion:not([disabled])').forEach(btn => {
     btn.addEventListener('click', async () => {
       await addToHardBlocklist(btn.dataset.domain);
+      const searchInput = document.getElementById('search-input');
+      const btnSearchAdd = document.getElementById('btn-search-add');
+      if (searchInput) {
+        searchInput.value = '';
+      }
+      if (btnSearchAdd) {
+        btnSearchAdd.disabled = true;
+        btnSearchAdd.setAttribute('disabled', 'true');
+      }
+      hideDropdown();
     });
   });
 }
@@ -245,7 +338,7 @@ export async function renderTimerGroups() {
           <span class="sites-label">Includes:</span>
           ${(group.sites || []).map((site, sIdx) => `
             <span class="site-tag">
-              <img src="${faviconUrl(site, 16)}" class="favicon-sm" alt="">
+              <img src="${faviconUrl(site, 16)}" class="favicon-sm" alt="" onerror="this.src='../icons/icon16.png'">
               ${site}
               <button class="btn-remove-site" data-gidx="${gIdx}" data-sidx="${sIdx}" title="Remove site">✕</button>
             </span>
@@ -354,16 +447,132 @@ export async function removeSiteFromGroup(gIdx, sIdx) {
   return false;
 }
 
+// ── Theme Management (Dark Mode) ──────────────────────────────────────────
+export async function getActiveTheme() {
+  if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
+    try {
+      const saved = localStorage.getItem('stopscroll_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+    } catch (_) {}
+  }
+  try {
+    const settings = await StorageService.getSettings();
+    if (settings && (settings.theme === 'dark' || settings.theme === 'light')) {
+      return settings.theme;
+    }
+  } catch (_) {}
+
+  if (typeof window !== 'undefined' && window.matchMedia && typeof window.matchMedia === 'function') {
+    try {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch (_) {}
+  }
+  return 'light';
+}
+
+export async function applyTheme(theme) {
+  if (typeof document !== 'undefined') {
+    if (document.documentElement && typeof document.documentElement.setAttribute === 'function') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    if (document.body && document.body.classList) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark');
+        document.body.classList.remove('light');
+      } else {
+        document.body.classList.add('light');
+        document.body.classList.remove('dark');
+      }
+    }
+  }
+
+  const iconEl = document.getElementById('theme-toggle-icon');
+  const labelEl = document.getElementById('theme-toggle-label');
+  if (iconEl) {
+    iconEl.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  if (labelEl) {
+    labelEl.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+}
+
+export async function toggleTheme() {
+  const current = (typeof document !== 'undefined' && document.documentElement && typeof document.documentElement.getAttribute === 'function')
+    ? document.documentElement.getAttribute('data-theme')
+    : 'light';
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+
+  if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+    try {
+      localStorage.setItem('stopscroll_theme', newTheme);
+    } catch (_) {}
+  }
+  try {
+    await StorageService.updateSettings({ theme: newTheme });
+  } catch (_) {}
+
+  await applyTheme(newTheme);
+  return newTheme;
+}
+
+export function bindThemeEvents() {
+  const btnTheme = document.getElementById('btn-theme-toggle');
+  if (btnTheme) {
+    btnTheme.addEventListener('click', async () => {
+      await toggleTheme();
+    });
+  }
+}
+
 // ── Event Bindings ─────────────────────────────────────────────────────────
 export function bindHardBlocklistEvents() {
   const searchInput = document.getElementById('search-input');
+  const btnSearchAdd = document.getElementById('btn-search-add');
+  const btnAddSite = document.getElementById('btn-add-site');
+
+  const updateAddBtnState = () => {
+    if (btnSearchAdd && searchInput) {
+      const val = searchInput.value ? searchInput.value.trim() : '';
+      if (val.length > 0) {
+        btnSearchAdd.disabled = false;
+        if (typeof btnSearchAdd.removeAttribute === 'function') {
+          btnSearchAdd.removeAttribute('disabled');
+        }
+      } else {
+        btnSearchAdd.disabled = true;
+        if (typeof btnSearchAdd.setAttribute === 'function') {
+          btnSearchAdd.setAttribute('disabled', 'true');
+        }
+      }
+    }
+  };
+
+  // Initial state: disabled by default
+  updateAddBtnState();
+
   if (searchInput) {
     searchInput.addEventListener('focus', () => {
       showDropdown();
       renderSuggestions(searchInput.value);
     });
+
     searchInput.addEventListener('input', () => {
+      updateAddBtnState();
       renderSuggestions(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const val = searchInput.value ? searchInput.value.trim() : '';
+        if (val) {
+          await addToHardBlocklist(val);
+          searchInput.value = '';
+          updateAddBtnState();
+          hideDropdown();
+        }
+      }
     });
   }
 
@@ -372,22 +581,44 @@ export function bindHardBlocklistEvents() {
     btnClose.addEventListener('click', hideDropdown);
   }
 
-  const btnSearchAdd = document.getElementById('btn-search-add');
   if (btnSearchAdd && searchInput) {
     btnSearchAdd.addEventListener('click', async () => {
-      if (searchInput.value) {
-        await addToHardBlocklist(searchInput.value);
+      const val = searchInput.value ? searchInput.value.trim() : '';
+      if (val) {
+        await addToHardBlocklist(val);
         searchInput.value = '';
+        updateAddBtnState();
         hideDropdown();
       }
     });
   }
 
-  const btnAddSite = document.getElementById('btn-add-site');
   if (btnAddSite && searchInput) {
     btnAddSite.addEventListener('click', () => {
       searchInput.focus();
       showDropdown();
+      renderSuggestions(searchInput.value);
+    });
+  }
+
+  // Click outside listener: collapse dropdown if clicked outside search container and add site button
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      const searchContainer = document.getElementById('search-container');
+      if (searchContainer) {
+        const isInside = searchContainer.contains ? searchContainer.contains(e.target) : false;
+        const isAddBtn = btnAddSite && btnAddSite.contains ? btnAddSite.contains(e.target) : false;
+        if (!isInside && !isAddBtn) {
+          hideDropdown();
+        }
+      }
+    });
+
+    // Also close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideDropdown();
+      }
     });
   }
 
@@ -449,11 +680,14 @@ export function bindNavigationEvents() {
 }
 
 export async function initOptions() {
+  const theme = await getActiveTheme();
+  await applyTheme(theme);
   await renderHardBlocklist();
   await renderTimerGroups();
   bindHardBlocklistEvents();
   bindTimerGroupEvents();
   bindNavigationEvents();
+  bindThemeEvents();
 }
 
 if (typeof document !== 'undefined') {

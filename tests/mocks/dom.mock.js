@@ -127,8 +127,29 @@ export class MockElement {
     this.style = {};
     this.dataset = {};
     this.listeners = new Map();
+    this.attributes = new Map();
     this.children = [];
     this.parentNode = null;
+  }
+
+  setAttribute(name, value) {
+    this.attributes.set(name, String(value));
+    if (name === 'disabled') this.disabled = true;
+    if (name === 'class') this.className = String(value);
+    if (name === 'id') this.id = String(value);
+  }
+
+  removeAttribute(name) {
+    this.attributes.delete(name);
+    if (name === 'disabled') this.disabled = false;
+  }
+
+  getAttribute(name) {
+    return this.attributes.get(name) || null;
+  }
+
+  hasAttribute(name) {
+    return this.attributes.has(name);
   }
 
   get className() {
@@ -219,6 +240,17 @@ export class MockElement {
     return child;
   }
 
+  contains(node) {
+    if (!node) return false;
+    if (node === this) return true;
+    let curr = node.parentNode;
+    while (curr) {
+      if (curr === this) return true;
+      curr = curr.parentNode;
+    }
+    return false;
+  }
+
   remove() {
     if (this.parentNode) {
       this.parentNode.removeChild(this);
@@ -289,6 +321,8 @@ export class MockDocument {
   constructor() {
     this.elements = new Map();
     this.listeners = new Map();
+    this.documentElement = new MockElement('html');
+    this.body = new MockElement('body');
   }
 
   registerElement(id, tagName = 'div') {
@@ -414,6 +448,9 @@ export function setupOptionsDOM() {
   doc.registerElement('badge-hardblock');
   doc.registerElement('badge-timers');
   doc.registerElement('btn-back-to-popup', 'button');
+  doc.registerElement('btn-theme-toggle', 'button');
+  doc.registerElement('theme-toggle-icon', 'span');
+  doc.registerElement('theme-toggle-label', 'span');
 
   // Tab A: Hard Blocklist
   const tabHardblock = doc.registerElement('tab-hardblock', 'section');

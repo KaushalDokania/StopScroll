@@ -319,4 +319,63 @@ describe('extension/options UI and Controller Unit Tests', () => {
       assert.ok(html.includes('Priority 3') || html.includes('General Browsing'));
     });
   });
+
+  describe('Bugfixes & UX Enhancements', () => {
+    it('Add button is disabled when search input is empty, and enables when typing', async () => {
+      const opt = await getOptionsModule();
+      opt.bindHardBlocklistEvents();
+
+      const input = doc.getElementById('search-input');
+      const addBtn = doc.getElementById('btn-search-add');
+
+      assert.equal(addBtn.disabled, true);
+
+      await input.input('github');
+      assert.equal(addBtn.disabled, false);
+
+      await input.input('');
+      assert.equal(addBtn.disabled, true);
+    });
+
+    it('live search renders friendly names and favicons for custom and catalog sites', async () => {
+      await StorageService.saveHardBlocklist([]);
+      const opt = await getOptionsModule();
+
+      await opt.renderSuggestions('github');
+      const grid = doc.getElementById('suggestions-grid');
+
+      assert.ok(grid.innerHTML.includes('github.com'));
+      assert.ok(grid.innerHTML.includes('GitHub') || grid.innerHTML.includes('Github'));
+      assert.ok(grid.innerHTML.includes('https://www.google.com/s2/favicons?domain=github.com'));
+    });
+
+    it('clicking outside search container collapses suggestions dropdown', async () => {
+      const opt = await getOptionsModule();
+      opt.bindHardBlocklistEvents();
+
+      const dropdown = doc.getElementById('suggestions-dropdown');
+      opt.showDropdown();
+      assert.equal(dropdown.classList.contains('hidden'), false);
+
+      // Simulate click outside
+      const appShell = doc.getElementById('app-shell');
+      await doc.dispatchEvent({ type: 'click', target: appShell });
+      assert.equal(dropdown.classList.contains('hidden'), true);
+    });
+
+    it('dark mode toggles theme between light and dark', async () => {
+      const opt = await getOptionsModule();
+
+      await opt.applyTheme('light');
+      assert.equal(doc.documentElement.getAttribute('data-theme'), 'light');
+
+      const newTheme = await opt.toggleTheme();
+      assert.equal(newTheme, 'dark');
+      assert.equal(doc.documentElement.getAttribute('data-theme'), 'dark');
+
+      const nextTheme = await opt.toggleTheme();
+      assert.equal(nextTheme, 'light');
+      assert.equal(doc.documentElement.getAttribute('data-theme'), 'light');
+    });
+  });
 });

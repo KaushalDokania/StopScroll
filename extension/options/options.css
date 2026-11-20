@@ -22,8 +22,26 @@
   --orange-subtle: rgba(249, 115, 22, 0.1);
 }
 
+[data-theme="dark"],
+body.dark {
+  --bg: #0b0f19;
+  --fg: #f8fafc;
+  --card-bg: #131c2e;
+  --border: #1e293b;
+  --muted: #94a3b8;
+  --rose: #f43f5e;
+  --rose-hover: #e11d48;
+  --rose-subtle: rgba(244, 63, 94, 0.15);
+  --amber: #f59e0b;
+  --green: #10b981;
+  --green-subtle: rgba(16, 185, 129, 0.15);
+  --orange: #f97316;
+  --orange-hover: #ea580c;
+  --orange-subtle: rgba(249, 115, 22, 0.15);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0b0f19;
     --fg: #f8fafc;
     --card-bg: #131c2e;
@@ -378,6 +396,46 @@ body {
 #btn-search-add {
   position: absolute;
   right: 6px;
+  transition: all 0.2s ease;
+}
+
+#btn-search-add:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+.sidebar-theme-toggle {
+  margin-top: auto;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.theme-toggle-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--rose);
+  background-color: var(--rose-subtle);
+}
+
+.theme-toggle-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .dropdown {
