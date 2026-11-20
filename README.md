@@ -31,34 +31,79 @@
 
 5. **Privacy-First & Lightweight**:
    - **Zero external runtime dependencies**, zero telemetry, and zero tracking.
-   - Total unpacked extension size is under **130 KB**.
+   - Total unpacked extension size is under **130 KB**; zip distribution under **30 KB**.
    - Fully compliant with Manifest V3 Content Security Policy (no `eval`, no inline scripts).
 
 ---
 
 ## 🚀 How to Install in Google Chrome
 
-1. Clone or download this repository:
+### Method 1: Pre-packaged Release (Recommended for Users)
+
+1. **Download the Release**:
+   - Navigate to [StopScroll Releases on GitHub](https://github.com/KaushalDokania/StopScroll/releases).
+   - Download the latest pre-built archive: `stopscroll-v1.0.0.zip`.
+
+2. **Extract the Archive**:
+   - Unzip `stopscroll-v1.0.0.zip` to a convenient folder on your computer (e.g., `~/Downloads/stopscroll-v1.0.0` or `Documents/StopScroll`).
+   - Verify the unzipped folder directly contains `manifest.json`, `background/`, `popup/`, etc.
+
+3. **Open Chrome Extensions**:
+   - In Google Chrome, type or paste into the address bar:
+     ```text
+     chrome://extensions
+     ```
+   - Press **Enter**.
+
+4. **Enable Developer Mode**:
+   - Turn on the **Developer mode** toggle in the top-right corner of the Extensions page.
+
+5. **Load Unpacked Extension**:
+   - Click the **Load unpacked** button in the top-left toolbar.
+   - In the file picker dialog, select the unzipped folder containing `manifest.json`.
+
+6. **Done!** StopScroll is now active and protecting your focus.
+
+---
+
+### Method 2: From Source (For Developers & Contributors)
+
+1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/StopScroll.git
+   git clone https://github.com/KaushalDokania/StopScroll.git
    cd StopScroll
    ```
 
-2. Open Google Chrome and navigate to the Extensions management page:
-   ```text
-   chrome://extensions
+2. **Run Tests & Verify Integrity**:
+   ```bash
+   npm test
    ```
+   *(All 97 unit and integration tests run with zero dependencies in < 200ms).*
 
-3. Enable **Developer mode** using the toggle switch in the top-right corner.
-
-4. Click the **Load unpacked** button in the top-left corner.
-
-5. Select the **`extension/`** folder inside the StopScroll project directory:
-   ```text
-   /path/to/StopScroll/extension
+3. **(Optional) Build Distribution Package**:
+   ```bash
+   npm run package
    ```
+   This runs tests and generates `dist/stopscroll-v1.0.0.zip`.
 
-6. StopScroll is now installed! Pin the shield icon to your Chrome toolbar for easy access.
+4. **Load in Chrome**:
+   - Open `chrome://extensions` in Google Chrome.
+   - Ensure **Developer mode** (top-right) is enabled.
+   - Click **Load unpacked** (top-left).
+   - Select the `extension/` subfolder in your cloned repository.
+
+---
+
+## 💡 Troubleshooting & Pro Tips
+
+- **Pin the Icon for Easy Access**:
+  Chrome hides new extensions by default behind the extension menu. Click the **puzzle piece icon (🧩)** in the top-right Chrome toolbar next to your profile avatar, locate **StopScroll**, and click the **pin icon (📌)** so the shield icon stays pinned for 1-click quick-blocking.
+- **Reloading after Source Edits**:
+  If you modify any file inside `extension/`, go to `chrome://extensions` and click the circular **Reload icon (🔄)** on the StopScroll card to apply changes immediately.
+- **Allowing in Incognito**:
+  To protect your focus during private browsing, open `chrome://extensions`, click **Details** on StopScroll, and toggle on **Allow in Incognito**.
+- **Inspect Service Worker**:
+  For debugging, click the **service worker** link on the StopScroll card in `chrome://extensions` to open Chrome DevTools for the background script.
 
 ---
 
@@ -66,7 +111,11 @@
 
 ```
 StopScroll/
-├── extension/                       ← Chrome Extension Unpacked Directory
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                   ← GitHub Actions CI: Automated test matrix on push & PR
+│       └── release.yml              ← GitHub Actions Release: Tag push 'v*' builds zip & creates release
+├── extension/                       ← Chrome Extension Root (Loaded by Chrome)
 │   ├── manifest.json                ← Manifest V3 definition
 │   ├── background/
 │   │   └── background.js            ← Service worker: DNR rules, active tab tracker, alarms
@@ -87,6 +136,8 @@ StopScroll/
 │   │   ├── storage.js               ← StorageService central persistence gateway
 │   │   └── catalog.js               ← 12 pre-populated distracting sites catalog
 │   └── icons/                       ← RGBA PNG icons (16px, 32px, 48px, 128px)
+├── scripts/
+│   └── package.js                   ← Clean packaging script: bundles extension/ into dist/
 ├── tests/                           ← Automated Test Suites
 │   ├── mocks/
 │   │   ├── chrome.mock.js           ← Mock environment for Chrome Extension MV3 APIs
@@ -106,22 +157,20 @@ StopScroll/
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Available Scripts
 
-StopScroll uses Node.js's native test runner (`node:test`) and strict assertions (`node:assert/strict`) with zero external test dependencies:
-
-```bash
-npm test
-```
-
-All unit tests and end-to-end integration tests execute in under 200ms with 100% pass rate.
+| Command | Description |
+| :--- | :--- |
+| `npm test` | Runs all 97 unit and integration tests via Node.js native test runner |
+| `npm run build:zip` | Bundles `extension/` into `dist/stopscroll-v<version>.zip`, excluding `.DS_Store` |
+| `npm run package` | Runs tests, then builds clean release zip package |
 
 ---
 
 ## 🛡️ Verification Steps
 
 To independently verify the extension in your browser:
-1. Open Chrome and load the unpacked extension from `StopScroll/extension`.
+1. Open Chrome and load the unpacked extension from `StopScroll/extension` (or unzipped release).
 2. Visit `reddit.com` or `twitter.com`.
 3. Click the StopScroll toolbar icon and click **`+ Block`**.
 4. Refresh the tab — you will be immediately redirected to the motivational `blocked.html` screen.

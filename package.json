@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --test tests/**/*.test.js",
+    "build:zip": "node scripts/package.js",
+    "package": "npm test && npm run build:zip"
   }
 }
