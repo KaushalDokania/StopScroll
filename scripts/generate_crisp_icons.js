@@ -77,74 +77,23 @@ function crc32(buf) {
 }
 
 /**
- * Distance to line segment (px, py) to (x1, y1)-(x2, y2)
+ * Signed distance to a rounded rectangle with center (cx, cy), half-dimensions (hw, hh), and radius r.
  */
-function distToSegment(px, py, x1, y1, x2, y2) {
-  const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
-  if (l2 === 0) return Math.hypot(px - x1, py - y1);
-  let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+function sdRoundedBox(px, py, cx, cy, hw, hh, r) {
+  const qx = Math.abs(px - cx) - (hw - r);
+  const qy = Math.abs(py - cy) - (hh - r);
+  const ox = Math.max(qx, 0);
+  const oy = Math.max(qy, 0);
+  const inside = Math.min(Math.max(qx, qy), 0);
+  return Math.hypot(ox, oy) + inside - r;
 }
 
 /**
- * Tests if point (x, y) is inside the shield shape in normalized [0, 1] coordinates.
- */
-function isInsideShield(x, y) {
-  // Bounding box with rounded margin
-  if (x < 0.08 || x > 0.92 || y < 0.08 || y > 0.92) return false;
-
-  const nx = (x - 0.5) / 0.42; // [-1, 1] horizontal
-  const ny = y;
-
-  // Top rounded corners: y between 0.08 and 0.22
-  if (ny < 0.22) {
-    const rx = Math.abs(nx);
-    if (rx > 0.8) {
-      const cx = 0.8;
-      const cy = 0.22;
-      const r = 0.14;
-      const d = Math.hypot(rx - cx, (ny - cy) / 0.7);
-      if (d > r) return false;
-    }
-    return true;
-  }
-
-  // Upper straight/slight taper section
-  if (ny <= 0.55) {
-    return Math.abs(nx) <= 1.0;
-  }
-
-  // Lower tapered curve coming to a bottom point at (0.5, 0.92)
-  const progress = (ny - 0.55) / (0.92 - 0.55); // 0 to 1
-  const maxWidth = Math.pow(1 - progress, 0.75);
-  return Math.abs(nx) <= maxWidth;
-}
-
-/**
- * Checks if point is on the checkmark stroke.
- */
-function checkmarkAlpha(x, y, s) {
-  // Checkmark segments in normalized coords
-  // Leg 1: (0.32, 0.52) to (0.46, 0.66)
-  // Leg 2: (0.46, 0.66) to (0.72, 0.36)
-  const d1 = distToSegment(x, y, 0.32, 0.52, 0.46, 0.66);
-  const d2 = distToSegment(x, y, 0.46, 0.66, 0.72, 0.36);
-  const minDist = Math.min(d1, d2);
-
-  const strokeRadius = 0.075;
-  const antialiasEdge = 0.025;
-
-  if (minDist <= strokeRadius - antialiasEdge) return 1.0;
-  if (minDist >= strokeRadius + antialiasEdge) return 0.0;
-  return 1.0 - (minDist - (strokeRadius - antialiasEdge)) / (antialiasEdge * 2);
-}
-
-/**
- * Renders a crisp, antialiased StopScroll shield icon with 4x supersampling.
+ * Renders a crisp, antialiased StopScroll icon.
+ * Features a modern, vibrant rounded squircle badge with crisp pause/focus pillars.
  */
 function renderCrispIcon(targetSize) {
-  const ss = 4; // 4x supersampling
+  const ss = 4; // 4x supersampling for ultra-crisp edges
   const w = targetSize;
   const h = targetSize;
   const sw = w * ss;
@@ -152,19 +101,36 @@ function renderCrispIcon(targetSize) {
 
   const highRes = new Float32Array(sw * sh * 4);
 
-  // Gradient colors (StopScroll Rose-Orange Brand Gradient)
+  // StopScroll Signature Gradient Colors
   const cTop = [244, 63, 94];     // #f43f5e (Rose)
   const cMid = [249, 115, 22];    // #f97316 (Orange)
   const cBot = [245, 158, 11];    // #f59e0b (Amber)
 
+  // Outer badge geometry
+  const cx = 0.5 * sw;
+  const cy = 0.5 * sh;
+  const badgeHw = 0.44 * sw;
+  const badgeHh = 0.44 * sh;
+  const badgeR = 0.22 * sw;
+
+  // Dual Pause Pillars geometry
+  const pillarHw = 0.08 * sw;
+  const pillarHh = 0.25 * sh;
+  const pillarR = 0.045 * sw;
+  const leftPillarCx = 0.38 * sw;
+  const rightPillarCx = 0.62 * sw;
+  const pillarCy = 0.5 * sh;
+
   for (let sy = 0; sy < sh; sy++) {
     const ny = sy / sh;
     for (let sx = 0; sx < sw; sx++) {
-      const nx = sx / sw;
       const idx = (sy * sw + sx) * 4;
 
-      if (isInsideShield(nx, ny)) {
-        // Vertical gradient interpolation
+      // Distance to badge
+      const dBadge = sdRoundedBox(sx, sy, cx, cy, badgeHw, badgeHh, badgeR);
+
+      if (dBadge <= 0) {
+        // Vertical brand gradient
         let r, g, b;
         if (ny < 0.5) {
           const t = ny / 0.5;
@@ -175,24 +141,39 @@ function renderCrispIcon(targetSize) {
           const t = (ny - 0.5) / 0.5;
           r = cMid[0] + (cBot[0] - cMid[0]) * t;
           g = cMid[1] + (cBot[1] - cMid[1]) * t;
-          b = cMid[2] + (cBot[2] - cMid[2]) * t;
+          b = cBot[2] + (cBot[2] - cMid[2]) * t;
         }
 
-        // Draw crisp checkmark
-        const chk = checkmarkAlpha(nx, ny, targetSize);
-        if (chk > 0) {
-          // Blend with pure white
-          r = r * (1 - chk) + 255 * chk;
-          g = g * (1 - chk) + 255 * chk;
-          b = b * (1 - chk) + 255 * chk;
+        // Distance to left and right pillars
+        const dPillarL = sdRoundedBox(sx, sy, leftPillarCx, pillarCy, pillarHw, pillarHh, pillarR);
+        const dPillarR = sdRoundedBox(sx, sy, rightPillarCx, pillarCy, pillarHw, pillarHh, pillarR);
+        const dPillar = Math.min(dPillarL, dPillarR);
+
+        if (dPillar <= 0) {
+          // Inside pillar: pure crisp white
+          r = 255;
+          g = 255;
+          b = 255;
+        } else if (dPillar < 1.0) {
+          // Antialias pillar border
+          const tP = 1.0 - dPillar;
+          r = r * (1 - tP) + 255 * tP;
+          g = g * (1 - tP) + 255 * tP;
+          b = b * (1 - tP) + 255 * tP;
+        }
+
+        // Antialias outer badge edge
+        let alpha = 255;
+        if (dBadge > -1.0) {
+          alpha = Math.round(255 * -dBadge);
         }
 
         highRes[idx + 0] = r;
         highRes[idx + 1] = g;
         highRes[idx + 2] = b;
-        highRes[idx + 3] = 255;
+        highRes[idx + 3] = alpha;
       } else {
-        highRes[idx + 3] = 0; // Transparent outside
+        highRes[idx + 3] = 0; // Transparent
       }
     }
   }

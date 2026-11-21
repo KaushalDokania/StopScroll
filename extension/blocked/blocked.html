@@ -3,52 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StopScroll — Blocked</title>
+  <title>StopScroll — Focus Protected</title>
   <link rel="stylesheet" href="blocked.css">
 </head>
-<body>
+<body class="blocked-body select-none">
 
-  <div id="blocked-page">
-    <!-- Decorative glows -->
+  <!-- Main Canvas: Viewport Bounded -->
+  <div id="blocked-page" class="scenic-canvas">
+
+    <!-- Atmospheric Scenic Overlays -->
+    <div id="scenic-overlay" class="scenic-gradient-overlay"></div>
+    <div class="scenic-vignette-overlay"></div>
+
+    <!-- Decorative glows (preserved for legacy test suite) -->
     <div class="glow glow-top-left"></div>
     <div class="glow glow-bottom-right"></div>
 
-    <!-- Mascot -->
-    <div class="mascot-wrap">
-      <div class="mascot-icon">
-        <svg class="lock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-        </svg>
+    <!-- Top Floating Meta Bar -->
+    <header class="top-meta-bar">
+      <!-- Mascot & Focus Badge -->
+      <div class="mascot-wrap">
+        <div class="mascot-icon">
+          <svg class="lock-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+        </div>
+        <div class="focus-badge">🌱 Focus Mode</div>
       </div>
-      <div class="focus-badge">🌱 Focus Mode</div>
-    </div>
 
-    <!-- Reason -->
-    <div class="reason-section">
-      <div id="reason-pill" class="reason-pill pill-rose">Site is Blocked</div>
-      <h1 class="blocked-heading">Take a deep breath and stay on track!</h1>
-      <p class="blocked-sub">
-        You're trying to visit
-        <span id="blocked-domain" class="domain-highlight">—</span>,
-        which is restricted to protect your focus.
-      </p>
-    </div>
-
-    <!-- Quote Card -->
-    <div class="quote-card">
-      <div class="quote-header">
-        <span class="quote-label">⚡ Daily Motivation</span>
-        <button id="btn-new-quote" class="btn-link">↻ New quote</button>
+      <!-- Domain & Status Pill -->
+      <div class="domain-pill-wrap">
+        <div class="ui-pill">
+          <span class="pulsing-dot"></span>
+          <span id="blocked-domain" class="domain-highlight">this site</span>
+          <span class="pill-divider">•</span>
+          <div id="reason-pill" class="reason-pill pill-rose">Site is Blocked</div>
+        </div>
       </div>
-      <blockquote id="quote-text" class="quote-text">""</blockquote>
-      <p id="quote-author" class="quote-author">—</p>
-    </div>
 
-    <!-- Actions -->
-    <div class="action-buttons">
-      <button id="btn-go-back" class="btn btn-primary">Go Back to Work</button>
-      <button id="btn-manage-blocklist" class="btn btn-secondary">Manage Blocklist</button>
-    </div>
+      <!-- Scenic Nature Mood Pill -->
+      <div class="scene-badge-wrap">
+        <div class="ui-pill ui-pill-subtle">
+          <span class="scene-dot"></span>
+          <span id="scene-name-label">Misty Redwood Forest</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Subtitle (accessible & test-compliant) -->
+    <p id="blocked-sub" class="blocked-sub visually-hidden">
+      You're trying to visit this site, which is restricted to protect your focus.
+    </p>
+
+    <!-- ============================================================== -->
+    <!-- 3x3 DYNAMIC STAGE (IN-FRAME VIEWPORT BOUNDED)                   -->
+    <!-- ============================================================== -->
+    <main id="scenic-stage" class="scenic-stage zone-center-center">
+
+      <!-- Dynamic Quote Card (Strictly Bounded Inside Frame) -->
+      <div id="dynamic-quote-container" class="quote-card align-center">
+
+        <!-- Category Badge Wrapper (Aligns with horizontal position) -->
+        <div id="category-wrapper" class="category-wrapper">
+          <div id="quote-category-tag" class="quote-category-tag">
+            ✦ STOIC WISDOM
+          </div>
+        </div>
+
+        <!-- Big Bold Dynamic Quote Text (Always Bold, In-Frame Clamped) -->
+        <blockquote id="quote-text" class="quote-text">
+          "We suffer more often in imagination than in reality."
+        </blockquote>
+
+        <!-- Author with dynamic rule (Aligns with horizontal position) -->
+        <div id="quote-author-wrap" class="quote-author-wrap">
+          <span id="quote-bar-left" class="quote-bar"></span>
+          <p id="quote-author" class="quote-author">Seneca</p>
+          <span id="quote-bar-right" class="quote-bar"></span>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Floating Action Bar -->
+    <footer class="bottom-action-bar">
+      <div class="shortcut-hint">
+        Press <kbd class="kbd-pill">Space</kbd> or click ↻ for a new scene &amp; quote
+      </div>
+
+      <div class="action-buttons">
+        <button id="btn-go-back" class="btn btn-primary">← Go Back to Work</button>
+        <button id="btn-manage-blocklist" class="btn btn-secondary">Settings</button>
+        <button id="btn-new-quote" class="btn btn-icon" title="Shuffle Scene (Spacebar)">
+          <svg class="shuffle-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="pos-badge-wrap">
+        <span class="pos-badge">Position: <strong id="current-pos-name">CENTER</strong></span>
+      </div>
+    </footer>
 
   </div>
 
