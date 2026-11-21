@@ -5,13 +5,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StopScroll — 3x3 Grid & Scenic Nature Block Screen Showcase</title>
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Tailwind CDN with fallback support -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Cormorant+Garamond:ital,wght@0,700;1,700&family=Inter:wght@700;800;900&family=Lora:ital,wght@0,700;1,700&family=Newsreader:ital,opsz,wght@6..72,700;1,6..72,700&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@700&display=swap"
     rel="stylesheet">
   <style>
+    /* ============================================================== */
+    /* STANDALONE BULLETPROOF CSS FALLBACK (ZERO CDN DEPENDENCY)       */
+    /* Guarantees 100% intact layout even if CDN / scripts fail        */
+    /* ============================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #09090b;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    /* Header Toolbar */
+    .studio-header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(9, 9, 11, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .studio-header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     /* ============================================================== */
     /* ALWAYS BOLD TYPOGRAPHY SYSTEM: SERIF & PUNCHY SANS BLOCKS      */
     /* ============================================================== */
@@ -75,7 +130,38 @@
     /* Guarantees quote NEVER overflows top, bottom, left or right    */
     /* ============================================================== */
 
+    /* Canvas Sizing: Dynamic Remaining Height */
+    #scenic-canvas {
+      position: relative;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+      transition: background-image 0.8s ease, background-color 0.8s ease;
+    }
+
     /* Vertical & Horizontal Anchor on #scenic-stage */
+    #scenic-stage {
+      position: relative;
+      z-index: 20;
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      pointer-events: none;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
     .zone-top-left {
       justify-content: flex-start;
       align-items: flex-start;
@@ -124,7 +210,7 @@
     /* Content Alignment within Card */
     .align-left {
       text-align: left;
-      max-width: min(700px, 86vw);
+      max-width: min(720px, 88vw);
     }
 
     .align-left #category-wrapper {
@@ -133,12 +219,17 @@
 
     .align-left #quote-author-wrap {
       justify-content: flex-start;
-      flex-direction: row;
+    }
+    .align-left #quote-bar-right {
+      display: none;
+    }
+    .align-left #quote-bar-left {
+      display: block;
     }
 
     .align-center {
       text-align: center;
-      max-width: min(860px, 92vw);
+      max-width: min(880px, 94vw);
     }
 
     .align-center #category-wrapper {
@@ -147,12 +238,17 @@
 
     .align-center #quote-author-wrap {
       justify-content: center;
-      flex-direction: row;
+    }
+    .align-center #quote-bar-left {
+      display: block;
+    }
+    .align-center #quote-bar-right {
+      display: block;
     }
 
     .align-right {
       text-align: right;
-      max-width: min(700px, 86vw);
+      max-width: min(720px, 88vw);
     }
 
     .align-right #category-wrapper {
@@ -161,7 +257,12 @@
 
     .align-right #quote-author-wrap {
       justify-content: flex-end;
-      flex-direction: row-reverse;
+    }
+    .align-right #quote-bar-left {
+      display: none;
+    }
+    .align-right #quote-bar-right {
+      display: block;
     }
 
     /* In-frame bounds protection */
@@ -183,6 +284,67 @@
     .text-drop-shadow-subtle {
       text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
     }
+
+    /* Vignette and overlays */
+    .scenic-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: background 0.7s ease;
+    }
+
+    .scenic-vignette-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.75) 100%);
+    }
+
+    /* Grid Guide Overlay */
+    #grid-guide-overlay {
+      position: absolute;
+      inset: 16px 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      pointer-events: none;
+      border: 1px dashed rgba(251, 191, 36, 0.3);
+      border-radius: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    #grid-guide-overlay.hidden {
+      display: none !important;
+    }
+
+    .grid-cell {
+      padding: 8px;
+      display: flex;
+    }
+    .grid-cell-tl { border-right: 1px dashed rgba(251, 191, 36, 0.15); border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: flex-start; justify-content: flex-start; }
+    .grid-cell-tc { border-right: 1px dashed rgba(251, 191, 36, 0.15); border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: flex-start; justify-content: center; }
+    .grid-cell-tr { border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: flex-start; justify-content: flex-end; }
+    .grid-cell-cl { border-right: 1px dashed rgba(251, 191, 36, 0.15); border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: center; justify-content: flex-start; }
+    .grid-cell-cc { border-right: 1px dashed rgba(251, 191, 36, 0.15); border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: center; justify-content: center; }
+    .grid-cell-cr { border-bottom: 1px dashed rgba(251, 191, 36, 0.15); align-items: center; justify-content: flex-end; }
+    .grid-cell-bl { border-right: 1px dashed rgba(251, 191, 36, 0.15); align-items: flex-end; justify-content: flex-start; }
+    .grid-cell-bc { border-right: 1px dashed rgba(251, 191, 36, 0.15); align-items: flex-end; justify-content: center; }
+    .grid-cell-br { align-items: flex-end; justify-content: flex-end; }
+
+    /* UI Pill Badges */
+    .ui-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      font-size: 12px;
+    }
   </style>
 </head>
 
@@ -191,9 +353,8 @@
   <!-- ============================================================== -->
   <!-- FLOATING INTERACTIVE CONTROLLER TOOLBAR                        -->
   <!-- ============================================================== -->
-  <header
-    class="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-zinc-950/80 border-b border-white/10 px-4 py-2.5 shadow-2xl">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+  <header class="studio-header">
+    <div class="studio-header-inner">
 
       <!-- Logo & Title -->
       <div class="flex items-center gap-2.5">
@@ -207,13 +368,11 @@
         <div>
           <div class="text-xs font-bold tracking-tight text-white flex items-center gap-1.5">
             StopScroll Dynamic Scene Studio
-            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">Always Bold •
-              Serif &amp; Sans Blocks</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono">Always Bold • Serif &amp; Sans</span>
           </div>
           <div class="text-[10px] text-zinc-400 flex items-center gap-1.5">
             <span>Font:</span>
-            <span id="current-font-name" class="font-mono text-amber-300 font-semibold">Playfair Display (Bold
-              Serif)</span>
+            <span id="current-font-name" class="font-mono text-amber-300 font-semibold">Playfair Display (Bold Serif)</span>
           </div>
         </div>
       </div>
@@ -226,23 +385,23 @@
           <span class="text-[10px] uppercase font-mono px-2 text-zinc-400">Scene:</span>
           <button onclick="setScene(0)" id="scene-btn-0"
             class="px-2.5 py-1 rounded-lg bg-amber-400 text-zinc-950 font-bold shadow transition">
-            🌲 Misty Forest
+            🌲 Forest
           </button>
           <button onclick="setScene(1)" id="scene-btn-1"
             class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
-            🏔️ Alpine Lake
+            🏔️ Lake
           </button>
           <button onclick="setScene(2)" id="scene-btn-2"
             class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
-            🌊 Ocean Swell
+            🌊 Ocean
           </button>
           <button onclick="setScene(3)" id="scene-btn-3"
             class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
-            🏜️ Desert Dunes
+            🏜️ Dunes
           </button>
           <button onclick="setScene(4)" id="scene-btn-4"
             class="px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white transition">
-            🌌 Deep Cosmos
+            🌌 Cosmos
           </button>
         </div>
 
@@ -295,7 +454,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          <span>Shuffle Scene &amp; Quote ↻</span>
+          <span>Shuffle ↻</span>
         </button>
 
       </div>
@@ -306,29 +465,22 @@
   <!-- ============================================================== -->
   <!-- IMMERSIVE FULL-SCREEN CANVAS                                   -->
   <!-- ============================================================== -->
-  <div id="scenic-canvas"
-    class="relative w-full h-screen overflow-hidden flex flex-col justify-between bg-cover bg-center transition-all duration-1000"
-    style="background-image: url('https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=2560&q=85');">
+  <div id="scenic-canvas">
 
     <!-- Atmospheric Dark Cinematic Overlays for Perfect Readability -->
-    <div id="scenic-overlay"
-      class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/85 pointer-events-none transition-all duration-700">
-    </div>
-    <div class="absolute inset-0 bg-radial-vignette pointer-events-none"
-      style="background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0,0,0,0.7) 100%);"></div>
+    <div id="scenic-overlay" class="scenic-gradient-overlay bg-gradient-to-b from-black/70 via-black/45 to-black/85"></div>
+    <div class="scenic-vignette-overlay"></div>
 
-    <!-- Top Floating Meta Bar (Shrink-0 protects vertical bounds) -->
-    <div class="relative z-20 pt-16 sm:pt-20 px-6 sm:px-12 md:px-16 flex items-center justify-between shrink-0">
-      <div
-        class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/50 border border-white/15 backdrop-blur-md shadow-lg text-xs">
+    <!-- Top Floating Meta Bar -->
+    <div class="relative z-20 pt-6 px-6 sm:px-12 md:px-16 flex items-center justify-between shrink-0">
+      <div class="ui-pill">
         <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
         <span id="target-domain-label" class="font-mono text-white font-semibold">reddit.com</span>
         <span class="text-white/40">•</span>
         <span id="target-reason-badge" class="text-rose-300 font-medium">Distraction Blocked</span>
       </div>
 
-      <div
-        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/10 backdrop-blur-md text-[11px] font-mono text-zinc-300">
+      <div class="ui-pill text-[11px] font-mono text-zinc-300">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
         <span id="scene-name-label">Misty Redwood Forest</span>
       </div>
@@ -337,30 +489,19 @@
     <!-- ============================================================== -->
     <!-- 3x3 DYNAMIC STAGE (IN-FRAME VIEWPORT BOUNDED)                   -->
     <!-- ============================================================== -->
-    <main id="scenic-stage"
-      class="zone-center-center relative z-20 flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 md:px-16 py-3 sm:py-5 flex flex-col min-h-0 pointer-events-none transition-all duration-700 ease-out">
+    <main id="scenic-stage" class="zone-center-center">
 
       <!-- Optional visual grid guide for testing boundary alignment -->
-      <div id="grid-guide-overlay"
-        class="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 inset-y-3 sm:inset-y-5 grid grid-cols-3 grid-rows-3 pointer-events-none border border-dashed border-amber-400/25 rounded-2xl hidden transition-all duration-300">
-        <div class="border-r border-b border-dashed border-amber-400/15 flex items-start justify-start p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Left</span></div>
-        <div class="border-r border-b border-dashed border-amber-400/15 flex items-start justify-center p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Center</span></div>
-        <div class="border-b border-dashed border-amber-400/15 flex items-start justify-end p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Top Right</span></div>
-        <div class="border-r border-b border-dashed border-amber-400/15 flex items-center justify-start p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Left</span></div>
-        <div class="border-r border-b border-dashed border-amber-400/15 flex items-center justify-center p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Center</span></div>
-        <div class="border-b border-dashed border-amber-400/15 flex items-center justify-end p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Center Right</span></div>
-        <div class="border-r border-dashed border-amber-400/15 flex items-end justify-start p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Left</span></div>
-        <div class="border-r border-dashed border-amber-400/15 flex items-end justify-center p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Center</span></div>
-        <div class="flex items-end justify-end p-2"><span
-            class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Right</span></div>
+      <div id="grid-guide-overlay" class="hidden">
+        <div class="grid-cell grid-cell-tl"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Top Left</span></div>
+        <div class="grid-cell grid-cell-tc"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Top Center</span></div>
+        <div class="grid-cell grid-cell-tr"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Top Right</span></div>
+        <div class="grid-cell grid-cell-cl"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Center Left</span></div>
+        <div class="grid-cell grid-cell-cc"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Center Center</span></div>
+        <div class="grid-cell grid-cell-cr"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Center Right</span></div>
+        <div class="grid-cell grid-cell-bl"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Left</span></div>
+        <div class="grid-cell grid-cell-bc"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Center</span></div>
+        <div class="grid-cell grid-cell-br"><span class="text-[9px] font-mono text-amber-400/40 uppercase">Bottom Right</span></div>
       </div>
 
       <!-- Dynamic Quote Card (Strictly Bounded Inside Frame) -->
@@ -370,8 +511,8 @@
         <!-- Category Badge Wrapper (Aligns with position) -->
         <div id="category-wrapper" class="flex justify-center transition-all duration-500">
           <div id="quote-category-tag"
-            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/45 border border-white/20 backdrop-blur-md text-[11px] font-mono uppercase tracking-widest text-amber-300 shadow-xl">
-            ✦ Stoic Perspective
+            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/50 border border-white/20 backdrop-blur-md text-[11px] font-mono uppercase tracking-widest text-amber-300 shadow-xl">
+            ✦ Stoic Wisdom
           </div>
         </div>
 
@@ -384,21 +525,21 @@
         <!-- Author with dynamic rule (Aligns with position) -->
         <div id="quote-author-wrap"
           class="flex items-center justify-center gap-3 text-sm font-semibold tracking-wide text-zinc-200 text-drop-shadow-subtle transition-all duration-500">
-          <span class="w-6 h-[2px] bg-amber-400 shrink-0"></span>
-          <span id="quote-author-text" class="uppercase font-mono text-xs tracking-widest text-amber-300">—
-            Seneca</span>
+          <span id="quote-bar-left" class="w-6 h-[2px] bg-amber-400 shrink-0"></span>
+          <span id="quote-author-text" class="uppercase font-mono text-xs tracking-widest text-amber-300">Seneca</span>
+          <span id="quote-bar-right" class="w-6 h-[2px] bg-amber-400 shrink-0"></span>
         </div>
 
       </div>
 
     </main>
 
-    <!-- Bottom Floating Action Bar (Shrink-0 protects bottom bounds) -->
+    <!-- Bottom Floating Action Bar -->
     <div
       class="relative z-20 pb-6 sm:pb-8 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto w-full shrink-0">
 
       <div
-        class="text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/45 px-3.5 py-1.5 rounded-full border border-white/10">
+        class="text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/50 px-3.5 py-1.5 rounded-full border border-white/10">
         Press <kbd class="px-1.5 py-0.5 rounded bg-white/20 border border-white/20 text-white font-bold">Space</kbd> or
         click Shuffle for a new position &amp; scene
       </div>
@@ -424,7 +565,7 @@
       </div>
 
       <div
-        class="hidden sm:block text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/45 px-3.5 py-1.5 rounded-full border border-white/10">
+        class="hidden sm:block text-[11px] font-mono text-zinc-400 backdrop-blur-md bg-black/50 px-3.5 py-1.5 rounded-full border border-white/10">
         Position: <span id="current-pos-name" class="text-amber-300 font-bold">CENTER-CENTER</span>
       </div>
 
@@ -434,31 +575,36 @@
 
   <!-- Interactive JavaScript State -->
   <script>
-    // 5 High-Quality Curated Relaxing Nature / Landscape Scenes
+    // 5 High-Quality Curated Relaxing Nature / Landscape Scenes with fallback gradients
     const scenicScenes = [
       {
         name: "Misty Redwood Forest",
         url: "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=2560&q=85",
+        fallbackGradient: "linear-gradient(135deg, #0b1a13 0%, #132e22 50%, #05100a 100%)",
         overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
       },
       {
         name: "Alpine Sunset Lake",
         url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2560&q=85",
+        fallbackGradient: "linear-gradient(135deg, #101c30 0%, #1e3a5f 50%, #09111e 100%)",
         overlay: "bg-gradient-to-b from-black/65 via-black/40 to-black/90"
       },
       {
         name: "Moody Nordic Ocean",
         url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2560&q=85",
+        fallbackGradient: "linear-gradient(135deg, #071e2c 0%, #0d3852 50%, #041018 100%)",
         overlay: "bg-gradient-to-b from-black/75 via-black/50 to-black/90"
       },
       {
         name: "Golden Desert Dunes",
         url: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=2560&q=85",
+        fallbackGradient: "linear-gradient(135deg, #2b1708 0%, #4a2a12 50%, #170b04 100%)",
         overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
       },
       {
         name: "Deep Cosmic Aurora",
         url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=2560&q=85",
+        fallbackGradient: "linear-gradient(135deg, #12072b 0%, #240d4f 50%, #070214 100%)",
         overlay: "bg-gradient-to-b from-black/70 via-black/45 to-black/85"
       }
     ];
@@ -671,8 +817,10 @@
       const overlay = document.getElementById('scenic-overlay');
       const label = document.getElementById('scene-name-label');
 
-      canvas.style.backgroundImage = `url('${s.url}')`;
-      overlay.className = `absolute inset-0 ${s.overlay} pointer-events-none transition-all duration-700`;
+      // Set fallback gradient first, then try loading background image
+      canvas.style.backgroundImage = `url('${s.url}'), ${s.fallbackGradient}`;
+      canvas.style.backgroundColor = '#09090b';
+      overlay.className = `scenic-gradient-overlay ${s.overlay}`;
       label.textContent = s.name;
 
       for (let i = 0; i < scenicScenes.length; i++) {
@@ -705,7 +853,9 @@
         box.classList.add('align-center');
       }
 
-      posLabel.textContent = pos.toUpperCase();
+      if (posLabel) {
+        posLabel.textContent = pos.toUpperCase();
+      }
 
       // 3. Highlight active cell in mini controller
       gridPositions.forEach(p => {
@@ -776,7 +926,7 @@
       const catEl = document.getElementById('quote-category-tag');
 
       applyDynamicTypography(q);
-      authorEl.textContent = `— ${q.author}`;
+      authorEl.textContent = q.author;
       catEl.textContent = `✦ ${q.category}`;
     }
 
@@ -786,6 +936,13 @@
         e.preventDefault();
         rollRandomVisit();
       }
+    });
+
+    // Initialize immediately on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setScene(0);
+      setGridPos('center-center');
+      applyDynamicTypography(quotes[9]); // Seneca's quote
     });
   </script>
 </body>
