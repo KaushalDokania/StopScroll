@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "StopScroll",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Block distracting websites and enforce daily time limits with Timer Groups.",
 
   "permissions": [

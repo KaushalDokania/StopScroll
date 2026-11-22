@@ -22,7 +22,7 @@ describe('Phase 1 Acceptance Criteria & File Integrity Verification', () => {
 
       assert.equal(manifest.manifest_version, 3, 'Must be Manifest V3');
       assert.equal(manifest.name, 'StopScroll');
-      assert.equal(manifest.version, '1.0.0');
+      assert.equal(manifest.version, '1.1.0');
       assert.equal(manifest.description, 'Block distracting websites and enforce daily time limits with Timer Groups.');
     });
 
